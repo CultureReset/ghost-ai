@@ -1,0 +1,437 @@
+import WebSocket from 'ws';
+import { supabase } from '../config/supabase.js';
+import logger from '../config/logger.js';
+
+/**
+ * REAL-TIME VOICE AI SERVICE
+ * Handles live bidirectional voice conversations with AI providers
+ * Supports: OpenAI Realtime API, with extensibility for Grok, Gemini, Perplexity
+ */
+
+const OPENAI_REALTIME_API_KEY = process.env.OPENAI_API_KEY;
+const OPENAI_REALTIME_URL = 'wss://api.openai.com/v1/realtime?model=gpt-4o-realtime-preview-2024-10-01';
+
+// Active sessions: Map<callSid, sessionData>
+const activeSessions = new Map();
+
+/**
+ * Initialize real-time voice session
+ * @param {string} callSid - Twilio call SID
+ * @param {string} phoneNumber - Caller's phone number
+ * @param {string} aiProvider - AI provider (openai, grok, gemini, perplexity)
+ * @returns {Promise<object>} - Session initialization result
+ */
+export async function initializeVoiceSession(callSid, phoneNumber, aiProvider = 'openai') {
+  try {
+    let preferredAI = aiProvider;
+    let userName = 'there';
+
+    // Get user's AI preference from waitlist (if database available)
+    if (supabase) {
+      try {
+        const { data: user, error } = await supabase
+          .from('ghost_os_waitlist')
+          .select('preferred_ai, name')
+          .eq('phone_number', phoneNumber)
+          .single();
+
+        if (!error && user) {
+          preferredAI = user.preferred_ai || aiProvider;
+          userName = user.name || 'there';
+        }
+      } catch (dbError) {
+        logger.warn('Could not fetch user preferences from database:', dbError.message);
+        // Continue with defaults
+      }
+    }
+
+    logger.info(`Initializing voice session for ${callSid} with AI: ${preferredAI}`);
+
+    // Create session data
+    const sessionData = {
+      callSid,
+      phoneNumber,
+      aiProvider: preferredAI,
+      userName,
+      startTime: new Date(),
+      conversationHistory: [],
+      aiWebSocket: null,
+      twilioWebSocket: null
+    };
+
+    activeSessions.set(callSid, sessionData);
+
+    // Log session start (if database available)
+    if (supabase) {
+      try {
+        await supabase.from('phone_calls').insert({
+          call_sid: callSid,
+          from_number: phoneNumber,
+          status: 'in-progress',
+          direction: 'inbound',
+          metadata: {
+            ai_provider: preferredAI,
+            session_type: 'realtime_voice'
+          },
+          created_at: new Date().toISOString()
+        });
+      } catch (dbError) {
+        logger.warn('Could not log call to database:', dbError.message);
+        // Continue anyway - don't let DB errors stop the call
+      }
+    }
+
+    return {
+      success: true,
+      callSid,
+      aiProvider: preferredAI
+    };
+  } catch (error) {
+    logger.error('Error initializing voice session:', error);
+    // Don't throw - return success anyway to keep call alive
+    return {
+      success: true,
+      callSid,
+      aiProvider
+    };
+  }
+}
+
+/**
+ * Handle Twilio Media Stream connection
+ * @param {WebSocket} twilioWs - WebSocket from Twilio Media Stream
+ * @param {string} callSid - Twilio call SID
+ */
+export async function handleTwilioMediaStream(twilioWs, callSid) {
+  try {
+    const session = activeSessions.get(callSid);
+
+    if (!session) {
+      logger.error(`No session found for call: ${callSid}`);
+      twilioWs.close();
+      return;
+    }
+
+    session.twilioWebSocket = twilioWs;
+    logger.info(`Twilio Media Stream connected for call: ${callSid}`);
+
+    // Connect to AI provider based on preference
+    if (session.aiProvider === 'openai') {
+      await connectOpenAIRealtime(session);
+    } else {
+      // For other providers, fall back to OpenAI for now
+      // TODO: Add Grok, Gemini, Perplexity realtime support
+      logger.warn(`Provider ${session.aiProvider} not yet supported for realtime. Falling back to OpenAI.`);
+      await connectOpenAIRealtime(session);
+    }
+
+    // Handle incoming audio from Twilio
+    twilioWs.on('message', (message) => {
+      try {
+        const data = JSON.parse(message);
+        handleTwilioMessage(session, data);
+      } catch (error) {
+        logger.error('Error parsing Twilio message:', error);
+      }
+    });
+
+    twilioWs.on('close', () => {
+      logger.info(`Twilio Media Stream closed for call: ${callSid}`);
+      endVoiceSession(callSid);
+    });
+
+    twilioWs.on('error', (error) => {
+      logger.error('Twilio WebSocket error:', error);
+      endVoiceSession(callSid);
+    });
+
+  } catch (error) {
+    logger.error('Error handling Twilio Media Stream:', error);
+    twilioWs.close();
+  }
+}
+
+/**
+ * Connect to OpenAI Realtime API
+ * @param {object} session - Session data
+ */
+async function connectOpenAIRealtime(session) {
+  try {
+    logger.info(`Connecting to OpenAI Realtime API for call: ${session.callSid}`);
+
+    // Create WebSocket connection to OpenAI
+    const aiWs = new WebSocket(OPENAI_REALTIME_URL, {
+      headers: {
+        'Authorization': `Bearer ${OPENAI_REALTIME_API_KEY}`,
+        'OpenAI-Beta': 'realtime=v1'
+      }
+    });
+
+    session.aiWebSocket = aiWs;
+
+    aiWs.on('open', () => {
+      logger.info(`OpenAI Realtime API connected for call: ${session.callSid}`);
+
+      // Configure session
+      aiWs.send(JSON.stringify({
+        type: 'session.update',
+        session: {
+          modalities: ['text', 'audio'],
+          instructions: `You are Ghost AI, a helpful and friendly AI assistant. The user's name is ${session.userName}. You're having a phone conversation, so keep responses concise and natural. Remember context from previous parts of the conversation. Be warm, helpful, and conversational.`,
+          voice: 'alloy',
+          input_audio_format: 'g711_ulaw',
+          output_audio_format: 'g711_ulaw',
+          input_audio_transcription: {
+            model: 'whisper-1'
+          },
+          turn_detection: {
+            type: 'server_vad',
+            threshold: 0.5,
+            prefix_padding_ms: 300,
+            silence_duration_ms: 500
+          },
+          temperature: 0.8
+        }
+      }));
+
+      // Send initial greeting
+      aiWs.send(JSON.stringify({
+        type: 'response.create',
+        response: {
+          modalities: ['audio'],
+          instructions: `Greet ${session.userName} warmly and ask how you can help them today.`
+        }
+      }));
+    });
+
+    aiWs.on('message', (message) => {
+      try {
+        const data = JSON.parse(message);
+        handleOpenAIMessage(session, data);
+      } catch (error) {
+        logger.error('Error parsing OpenAI message:', error);
+      }
+    });
+
+    aiWs.on('close', () => {
+      logger.info(`OpenAI connection closed for call: ${session.callSid}`);
+    });
+
+    aiWs.on('error', (error) => {
+      logger.error('OpenAI WebSocket error:', error);
+    });
+
+  } catch (error) {
+    logger.error('Error connecting to OpenAI Realtime API:', error);
+    throw error;
+  }
+}
+
+/**
+ * Handle messages from Twilio Media Stream
+ * @param {object} session - Session data
+ * @param {object} data - Message data from Twilio
+ */
+function handleTwilioMessage(session, data) {
+  switch (data.event) {
+    case 'start':
+      logger.info(`Media stream started: ${data.streamSid}`);
+      session.streamSid = data.streamSid;
+      break;
+
+    case 'media':
+      // Forward audio to OpenAI
+      if (session.aiWebSocket && session.aiWebSocket.readyState === WebSocket.OPEN) {
+        session.aiWebSocket.send(JSON.stringify({
+          type: 'input_audio_buffer.append',
+          audio: data.media.payload
+        }));
+      }
+      break;
+
+    case 'stop':
+      logger.info(`Media stream stopped: ${data.streamSid}`);
+      endVoiceSession(session.callSid);
+      break;
+
+    default:
+      // Ignore other events
+      break;
+  }
+}
+
+/**
+ * Handle messages from OpenAI Realtime API
+ * @param {object} session - Session data
+ * @param {object} data - Message data from OpenAI
+ */
+function handleOpenAIMessage(session, data) {
+  switch (data.type) {
+    case 'response.audio.delta':
+      // Stream audio back to Twilio
+      if (session.twilioWebSocket && session.twilioWebSocket.readyState === WebSocket.OPEN) {
+        session.twilioWebSocket.send(JSON.stringify({
+          event: 'media',
+          streamSid: session.streamSid,
+          media: {
+            payload: data.delta
+          }
+        }));
+      }
+      break;
+
+    case 'conversation.item.input_audio_transcription.completed':
+      // Log user's transcription
+      logger.info(`User said: ${data.transcript}`);
+      session.conversationHistory.push({
+        role: 'user',
+        content: data.transcript,
+        timestamp: new Date()
+      });
+      break;
+
+    case 'response.done':
+      // Log AI's response
+      if (data.response && data.response.output) {
+        const aiText = data.response.output
+          .filter(item => item.type === 'message')
+          .map(item => item.content.map(c => c.text || c.transcript).join(' '))
+          .join(' ');
+
+        if (aiText) {
+          logger.info(`AI said: ${aiText}`);
+          session.conversationHistory.push({
+            role: 'assistant',
+            content: aiText,
+            timestamp: new Date()
+          });
+        }
+      }
+      break;
+
+    case 'error':
+      logger.error('OpenAI error:', data.error);
+      break;
+
+    default:
+      // Log other events for debugging
+      // logger.debug(`OpenAI event: ${data.type}`);
+      break;
+  }
+}
+
+/**
+ * End voice session and cleanup
+ * @param {string} callSid - Twilio call SID
+ */
+export async function endVoiceSession(callSid) {
+  try {
+    const session = activeSessions.get(callSid);
+
+    if (!session) {
+      return;
+    }
+
+    logger.info(`Ending voice session for call: ${callSid}`);
+
+    // Close WebSocket connections
+    if (session.aiWebSocket) {
+      session.aiWebSocket.close();
+    }
+    if (session.twilioWebSocket) {
+      session.twilioWebSocket.close();
+    }
+
+    // Calculate duration
+    const duration = Math.floor((new Date() - session.startTime) / 1000);
+
+    // Save conversation to database (if available)
+    if (supabase) {
+      try {
+        await supabase
+          .from('phone_calls')
+          .update({
+            status: 'completed',
+            duration_seconds: duration,
+            transcript: session.conversationHistory.map(item =>
+              `${item.role}: ${item.content}`
+            ).join('\n\n'),
+            metadata: {
+              ai_provider: session.aiProvider,
+              session_type: 'realtime_voice',
+              conversation_turns: session.conversationHistory.length
+            },
+            updated_at: new Date().toISOString()
+          })
+          .eq('call_sid', callSid);
+
+        // Track usage
+        await supabase.from('usage_records').insert({
+          phone_number: session.phoneNumber,
+          usage_type: 'realtime_voice_call',
+          quantity: 1,
+          cost: calculateRealtimeCost(duration),
+          date: new Date().toISOString().split('T')[0],
+          metadata: {
+            call_sid: callSid,
+            duration_seconds: duration,
+            ai_provider: session.aiProvider,
+            conversation_turns: session.conversationHistory.length
+          }
+        });
+      } catch (dbError) {
+        logger.warn('Could not save call data to database:', dbError.message);
+        // Continue anyway
+      }
+    }
+
+    // Remove from active sessions
+    activeSessions.delete(callSid);
+
+    logger.info(`Voice session ended: ${callSid}, duration: ${duration}s`);
+
+  } catch (error) {
+    logger.error('Error ending voice session:', error);
+  }
+}
+
+/**
+ * Calculate cost for realtime voice call
+ * @param {number} durationSeconds - Call duration in seconds
+ * @returns {number} - Cost in dollars
+ */
+function calculateRealtimeCost(durationSeconds) {
+  const minutes = Math.ceil(durationSeconds / 60);
+
+  // OpenAI Realtime API: ~$0.06/min input, ~$0.24/min output (average ~$0.15/min)
+  // Twilio: ~$0.013/min
+  // Total: ~$0.163/min
+  const costPerMinute = 0.163;
+
+  return minutes * costPerMinute;
+}
+
+/**
+ * Get active session count
+ * @returns {number} - Number of active sessions
+ */
+export function getActiveSessionCount() {
+  return activeSessions.size;
+}
+
+/**
+ * Get session info
+ * @param {string} callSid - Twilio call SID
+ * @returns {object|null} - Session data or null
+ */
+export function getSessionInfo(callSid) {
+  return activeSessions.get(callSid) || null;
+}
+
+export default {
+  initializeVoiceSession,
+  handleTwilioMediaStream,
+  endVoiceSession,
+  getActiveSessionCount,
+  getSessionInfo
+};
