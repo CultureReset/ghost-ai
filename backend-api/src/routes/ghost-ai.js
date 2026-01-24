@@ -7,11 +7,11 @@ const router = express.Router();
 const VoiceResponse = twilio.twiml.VoiceResponse;
 
 /**
- * POST /api/ghost-ai/voice
+ * GET/POST /api/ghost-ai/voice
  * Handle incoming calls to Ghost AI
  * This is the main Twilio webhook for Ghost AI calls
  */
-router.post('/voice', async (req, res) => {
+router.all('/voice', async (req, res) => {
   // Simple version - just answer the call
   const twiml = new VoiceResponse();
 
@@ -84,14 +84,15 @@ export function setupMediaStreamWebSocket(wss) {
 }
 
 /**
- * POST /api/ghost-ai/voice-response
+ * GET/POST /api/ghost-ai/voice-response
  * Handle speech input and respond with GPT-4
  */
-router.post('/voice-response', async (req, res) => {
+router.all('/voice-response', async (req, res) => {
   try {
-    const speechResult = req.body.SpeechResult;
-    const from = req.body.From;
-    const callSid = req.body.CallSid;
+    const params = req.method === 'GET' ? req.query : req.body;
+    const speechResult = params.SpeechResult;
+    const from = params.From;
+    const callSid = params.CallSid;
 
     logger.info(`🎤 Speech from ${from}: ${speechResult}`);
 
@@ -162,13 +163,14 @@ router.post('/voice-response', async (req, res) => {
 });
 
 /**
- * POST /api/ghost-ai/status
+ * GET/POST /api/ghost-ai/status
  * Handle call status updates
  */
-router.post('/status', async (req, res) => {
+router.all('/status', async (req, res) => {
   try {
-    const callSid = req.body.CallSid;
-    const callStatus = req.body.CallStatus;
+    const params = req.method === 'GET' ? req.query : req.body;
+    const callSid = params.CallSid;
+    const callStatus = params.CallStatus;
 
     logger.info(`Ghost AI call status: ${callSid} - ${callStatus}`);
 
