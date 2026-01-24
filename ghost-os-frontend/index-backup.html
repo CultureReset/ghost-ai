@@ -1,0 +1,2595 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>THE GHOST OS - Your Voice-Powered Operating System for Business Tools</title>
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      color: #1a1a1a;
+      line-height: 1.6;
+    }
+
+    /* Header */
+    .header {
+      position: fixed;
+      top: 0;
+      width: 100%;
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+      padding: 20px 40px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      z-index: 1000;
+    }
+
+    .logo {
+      font-size: 2.5em;
+      font-weight: 800;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      letter-spacing: -1px;
+    }
+
+    .logo-subtitle {
+      font-size: 0.35em;
+      color: #999;
+      font-weight: 400;
+      display: block;
+      margin-top: -5px;
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 25px;
+      align-items: center;
+      flex: 1;
+      justify-content: flex-end;
+    }
+
+    .nav-links a {
+      color: #000;
+      text-decoration: none;
+      font-weight: 500;
+      font-size: 0.95em;
+      transition: color 0.3s;
+    }
+
+    .nav-links a:hover {
+      color: #667eea;
+    }
+
+    .btn-login {
+      color: #667eea !important;
+    }
+
+    .btn-signup {
+      padding: 10px 25px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: #000 !important;
+      border-radius: 25px;
+      font-weight: 600;
+    }
+
+    .btn-signup:hover {
+      color: #000 !important;
+    }
+
+    .btn-get-info {
+      padding: 10px 25px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border: none;
+      border-radius: 25px;
+      font-weight: 600;
+      font-size: 0.95em;
+      cursor: pointer;
+      transition: transform 0.2s;
+    }
+
+    .btn-get-info:hover {
+      transform: scale(1.05);
+    }
+
+    /* Modal Styles */
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 10000;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.7);
+      backdrop-filter: blur(5px);
+      overflow-y: auto;
+      padding: 20px 0;
+    }
+
+    .modal-content {
+      background: white;
+      margin: 20px auto;
+      padding: 40px;
+      border-radius: 20px;
+      width: 90%;
+      max-width: 500px;
+      max-height: calc(100vh - 40px);
+      overflow-y: auto;
+      position: relative;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    }
+
+    .close-modal {
+      position: absolute;
+      right: 20px;
+      top: 20px;
+      font-size: 28px;
+      font-weight: bold;
+      color: #999;
+      cursor: pointer;
+      transition: color 0.3s;
+    }
+
+    .close-modal:hover {
+      color: #333;
+    }
+
+    .modal h2 {
+      font-size: 2em;
+      margin-bottom: 20px;
+      color: #1a1a1a;
+      text-align: center;
+    }
+
+    .modal p {
+      color: #666;
+      margin-bottom: 20px;
+      text-align: center;
+      line-height: 1.6;
+    }
+
+    .text-option {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 20px;
+      border-radius: 15px;
+      text-align: center;
+      margin-bottom: 30px;
+    }
+
+    .text-option h3 {
+      font-size: 1.5em;
+      margin-bottom: 10px;
+    }
+
+    .text-option a {
+      color: white;
+      font-size: 2em;
+      font-weight: 700;
+      text-decoration: none;
+      display: block;
+      margin: 10px 0;
+    }
+
+    .divider {
+      text-align: center;
+      margin: 30px 0;
+      color: #999;
+      font-weight: 600;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    .form-group label {
+      display: block;
+      margin-bottom: 8px;
+      color: #333;
+      font-weight: 500;
+    }
+
+    .form-group input {
+      width: 100%;
+      padding: 12px 15px;
+      border: 2px solid #e0e0e0;
+      border-radius: 8px;
+      font-size: 1em;
+      transition: border-color 0.3s;
+    }
+
+    .form-group input:focus {
+      outline: none;
+      border-color: #667eea;
+    }
+
+    .checkbox-group {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      margin: 20px 0;
+    }
+
+    .checkbox-group input[type="checkbox"] {
+      margin-top: 4px;
+      width: 20px;
+      height: 20px;
+      cursor: pointer;
+    }
+
+    .checkbox-group label {
+      flex: 1;
+      font-size: 0.9em;
+      color: #666;
+      line-height: 1.4;
+    }
+
+    .submit-btn {
+      width: 100%;
+      padding: 15px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 1.1em;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform 0.2s;
+    }
+
+    .submit-btn:hover {
+      transform: translateY(-2px);
+    }
+
+    .submit-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    /* Hero Video Section */
+    .hero-image-only {
+      margin-top: 120px;
+      width: 100%;
+      overflow: hidden;
+      background: #000;
+    }
+
+    .hero-image-only img {
+      width: 100%;
+      height: auto;
+      display: block;
+      object-fit: cover;
+    }
+
+    .hero-image-only video {
+      width: 100%;
+      height: auto;
+      display: block;
+      object-fit: contain;
+      max-height: 80vh;
+    }
+
+    /* About Section */
+    .about-section {
+      padding: 80px 40px;
+      background: #fafafa;
+    }
+
+    /* Feature Image Section */
+    .feature-image-section {
+      width: 100%;
+      background: #000;
+      padding: 0;
+      margin: 0;
+    }
+
+    .feature-image-section img {
+      width: 100%;
+      height: auto;
+      display: block;
+      object-fit: contain;
+      max-width: 100%;
+    }
+
+    /* About Section Continued */
+    .about-section-continued {
+      padding: 80px 40px;
+      background: #fafafa;
+      text-align: center;
+    }
+
+    .about-container {
+      max-width: 1000px;
+      margin: 0 auto;
+    }
+
+    .about-section h2 {
+      font-size: 3em;
+      margin-bottom: 20px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .about-section p {
+      font-size: 1.3em;
+      line-height: 1.8;
+      color: #333;
+      margin-bottom: 30px;
+    }
+
+    .about-cta {
+      margin-top: 40px;
+    }
+
+    .btn-primary {
+      padding: 18px 40px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border: none;
+      border-radius: 30px;
+      font-size: 1.1em;
+      font-weight: 700;
+      cursor: pointer;
+      text-decoration: none;
+      transition: all 0.3s;
+      box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+      display: inline-block;
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 15px 40px rgba(102, 126, 234, 0.4);
+    }
+
+    /* Interactive Demo Section */
+    .live-demo-section {
+      padding: 100px 40px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      text-align: center;
+    }
+
+    .live-demo-section h2 {
+      font-size: 3em;
+      margin-bottom: 50px;
+    }
+
+    .demo-subtitle {
+      font-size: 1.3em;
+      opacity: 0.9;
+      margin-bottom: 50px;
+    }
+
+    .demo-container {
+      max-width: 360px;
+      margin: 0 auto;
+    }
+
+    .demo-chat-window {
+      background: white;
+      border-radius: 40px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+      overflow: hidden;
+      margin-bottom: 8px;
+      border: 8px solid #1a1a1a;
+    }
+
+    .demo-chat-window.phone-style {
+      max-width: 100%;
+      aspect-ratio: 9/16;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .demo-chat-header {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      padding: 20px;
+      color: white;
+      text-align: left;
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      flex-shrink: 0;
+    }
+
+    .demo-chat-header h3 {
+      margin: 0;
+      font-size: 1.3em;
+    }
+
+    .demo-status {
+      font-size: 0.9em;
+      opacity: 0.9;
+    }
+
+    .demo-header-left {
+      flex: 1;
+    }
+
+    .demo-voice-toggle {
+      background: rgba(255, 255, 255, 0.2);
+      border: none;
+      padding: 10px 15px;
+      border-radius: 20px;
+      color: white;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.9em;
+      transition: all 0.3s;
+    }
+
+    .demo-voice-toggle:hover {
+      background: rgba(255, 255, 255, 0.3);
+    }
+
+    .demo-voice-toggle.muted {
+      opacity: 0.5;
+    }
+
+    .demo-clear-btn {
+      background: rgba(255, 255, 255, 0.2);
+      border: none;
+      padding: 10px 15px;
+      border-radius: 20px;
+      color: white;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.9em;
+      transition: all 0.3s;
+    }
+
+    .demo-clear-btn:hover {
+      background: rgba(255, 255, 255, 0.3);
+    }
+
+    .demo-chat-messages {
+      flex: 1;
+      overflow-y: auto;
+      padding: 30px;
+      background: #f8f9fa;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .demo-message {
+      display: flex;
+      gap: 15px;
+      animation: fadeInUp 0.4s ease-out;
+    }
+
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .demo-message.user {
+      flex-direction: row-reverse;
+    }
+
+    .demo-avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.3em;
+      flex-shrink: 0;
+    }
+
+    .demo-message.assistant .demo-avatar {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    }
+
+    .demo-message.user .demo-avatar {
+      background: #e9ecef;
+    }
+
+    .demo-message-content {
+      max-width: 70%;
+      padding: 15px 20px;
+      border-radius: 15px;
+      text-align: left;
+      color: #1a1a1a;
+      line-height: 1.6;
+    }
+
+    .demo-message.assistant .demo-message-content {
+      background: white;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+    }
+
+    .demo-message.user .demo-message-content {
+      background: #667eea;
+      color: white;
+    }
+
+    .demo-data-card {
+      background: #f8f9fa;
+      padding: 20px;
+      border-radius: 12px;
+      margin-top: 15px;
+      border-left: 4px solid #667eea;
+    }
+
+    .demo-data-card h4 {
+      margin: 0 0 15px 0;
+      color: #667eea;
+      font-size: 1.1em;
+    }
+
+    .demo-data-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 10px 0;
+      border-bottom: 1px solid #dee2e6;
+    }
+
+    .demo-data-row:last-child {
+      border-bottom: none;
+    }
+
+    .demo-data-label {
+      color: #666;
+      font-size: 0.95em;
+    }
+
+    .demo-data-value {
+      font-weight: 600;
+      color: #1a1a1a;
+    }
+
+    .demo-typing {
+      display: flex;
+      gap: 5px;
+      padding: 15px 20px;
+    }
+
+    .demo-typing span {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #999;
+      animation: typing 1.4s infinite;
+    }
+
+    .demo-typing span:nth-child(2) {
+      animation-delay: 0.2s;
+    }
+
+    .demo-typing span:nth-child(3) {
+      animation-delay: 0.4s;
+    }
+
+    @keyframes typing {
+      0%, 60%, 100% {
+        transform: translateY(0);
+      }
+      30% {
+        transform: translateY(-10px);
+      }
+    }
+
+    .demo-input-area {
+      background: white;
+      padding: 15px;
+      display: flex;
+      gap: 10px;
+      border-top: 1px solid #dee2e6;
+      align-items: center;
+      flex-shrink: 0;
+    }
+
+    .demo-input-area input {
+      flex: 1;
+      padding: 10px 15px;
+      border: 2px solid #e9ecef;
+      border-radius: 20px;
+      font-size: 0.9em;
+      outline: none;
+      transition: all 0.3s;
+      background: white;
+      order: 2;
+      min-width: 0;
+    }
+
+    .demo-input-area input:focus {
+      border-color: #667eea;
+    }
+
+    .demo-send-btn {
+      padding: 10px 20px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border: none;
+      border-radius: 20px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s;
+      order: 3;
+      flex-shrink: 0;
+      font-size: 0.9em;
+    }
+
+    .demo-send-btn:hover {
+      transform: scale(1.05);
+      box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+    }
+
+    .demo-voice-btn {
+      padding: 10px;
+      background: white;
+      border: 2px solid #667eea;
+      border-radius: 50%;
+      cursor: pointer;
+      transition: all 0.3s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.1em;
+      order: 1;
+      flex-shrink: 0;
+      width: 40px;
+      height: 40px;
+    }
+
+    .demo-voice-btn:hover {
+      background: #667eea;
+      transform: scale(1.1);
+    }
+
+    .demo-voice-btn.listening {
+      background: #667eea;
+      animation: pulse 1.5s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% {
+        opacity: 1;
+      }
+      50% {
+        opacity: 0.7;
+      }
+    }
+
+    .demo-suggestions {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 12px;
+      max-width: 360px;
+      margin: 0 auto;
+    }
+
+    .demo-suggestion-btn {
+      padding: 16px 24px;
+      background: rgba(255, 255, 255, 0.2);
+      backdrop-filter: blur(10px);
+      border: 2px solid rgba(255, 255, 255, 0.4);
+      color: white;
+      border-radius: 15px;
+      cursor: pointer;
+      transition: all 0.3s;
+      font-size: 1.05em;
+      text-align: left;
+      font-weight: 500;
+    }
+
+    .demo-suggestion-btn:hover {
+      background: rgba(255, 255, 255, 0.3);
+      transform: translateX(5px);
+      border-color: rgba(255, 255, 255, 0.6);
+    }
+
+    /* Stats Section */
+    .stats-section {
+      padding: 80px 40px;
+      background: #fafafa;
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 30px;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .stat-card {
+      background: white;
+      padding: 40px;
+      border-radius: 20px;
+      text-align: center;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+      transition: all 0.3s;
+    }
+
+    .stat-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 10px 30px rgba(102, 126, 234, 0.15);
+    }
+
+    .stat-icon {
+      font-size: 3em;
+      margin-bottom: 15px;
+    }
+
+    .stat-number {
+      font-size: 3.5em;
+      font-weight: 800;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin: 15px 0;
+    }
+
+    .stat-label {
+      font-size: 1.1em;
+      color: #666;
+      font-weight: 600;
+    }
+
+    /* Phone AI Assistant Section */
+    .phone-ai-section {
+      padding: 100px 40px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+    }
+
+    .phone-ai-container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .phone-ai-content h2 {
+      font-size: 3em;
+      text-align: center;
+      margin-bottom: 10px;
+    }
+
+    .phone-ai-subtitle {
+      text-align: center;
+      font-size: 1.5em;
+      opacity: 0.95;
+      margin-bottom: 60px;
+    }
+
+    .phone-ai-features {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+      gap: 40px;
+      margin-bottom: 60px;
+    }
+
+    .phone-ai-feature {
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(10px);
+      padding: 40px;
+      border-radius: 20px;
+      border: 2px solid rgba(255, 255, 255, 0.2);
+      transition: all 0.3s;
+    }
+
+    .phone-ai-feature:hover {
+      background: rgba(255, 255, 255, 0.15);
+      transform: translateY(-5px);
+      box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3);
+    }
+
+    .feature-header {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      margin-bottom: 20px;
+    }
+
+    .feature-icon {
+      font-size: 2.5em;
+    }
+
+    .phone-ai-feature h3 {
+      font-size: 1.5em;
+      margin: 0;
+    }
+
+    .phone-ai-feature p {
+      font-size: 1.1em;
+      line-height: 1.8;
+      opacity: 0.95;
+    }
+
+    .voice-examples {
+      list-style: none;
+      padding: 0;
+      margin-top: 20px;
+    }
+
+    .voice-examples li {
+      padding: 15px 20px;
+      background: rgba(255, 255, 255, 0.15);
+      margin-bottom: 10px;
+      border-radius: 10px;
+      border-left: 4px solid white;
+      font-style: italic;
+      font-size: 1.05em;
+    }
+
+    .phone-ai-cta {
+      text-align: center;
+      padding: 60px 40px;
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(10px);
+      border-radius: 20px;
+      border: 2px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .phone-ai-cta h3 {
+      font-size: 2em;
+      margin-bottom: 30px;
+    }
+
+    .use-cases {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 20px;
+      margin-bottom: 20px;
+    }
+
+    .use-case {
+      background: rgba(255, 255, 255, 0.2);
+      padding: 15px 30px;
+      border-radius: 30px;
+      font-size: 1.1em;
+      font-weight: 600;
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      transition: all 0.3s;
+    }
+
+    .use-case:hover {
+      background: rgba(255, 255, 255, 0.3);
+      transform: scale(1.05);
+    }
+
+    /* Dashboard Customization Section */
+    .dashboard-custom-section {
+      padding: 100px 40px;
+      background: #fafafa;
+      text-align: center;
+    }
+
+    .dashboard-custom-container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .dashboard-custom-section h2 {
+      font-size: 3em;
+      margin-bottom: 20px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .dashboard-custom-section .subtitle {
+      font-size: 1.5em;
+      color: #666;
+      margin-bottom: 60px;
+      font-weight: 500;
+    }
+
+    .custom-features {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 40px;
+      margin-bottom: 60px;
+    }
+
+    .custom-feature-card {
+      background: white;
+      padding: 40px;
+      border-radius: 20px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+      transition: all 0.3s;
+    }
+
+    .custom-feature-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 10px 30px rgba(102, 126, 234, 0.15);
+    }
+
+    .custom-feature-icon {
+      font-size: 3em;
+      margin-bottom: 20px;
+    }
+
+    .custom-feature-card h3 {
+      font-size: 1.5em;
+      margin-bottom: 15px;
+      color: #333;
+    }
+
+    .custom-feature-card p {
+      color: #666;
+      font-size: 1.1em;
+      line-height: 1.7;
+    }
+
+    .custom-examples {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      padding: 50px;
+      border-radius: 20px;
+      color: white;
+      text-align: left;
+      max-width: 900px;
+      margin: 0 auto;
+    }
+
+    .custom-examples h3 {
+      font-size: 1.8em;
+      margin-bottom: 30px;
+      text-align: center;
+    }
+
+    .example-list {
+      list-style: none;
+      padding: 0;
+    }
+
+    .example-list li {
+      padding: 15px 20px;
+      background: rgba(255, 255, 255, 0.15);
+      margin-bottom: 15px;
+      border-radius: 12px;
+      border-left: 4px solid white;
+      font-size: 1.1em;
+      font-style: italic;
+    }
+
+    /* Problem Section */
+    .problem-section {
+      padding: 100px 40px;
+      background: #fafafa;
+      text-align: center;
+    }
+
+    .problem-section h2 {
+      font-size: 2.5em;
+      margin-bottom: 20px;
+    }
+
+    .problem-section p {
+      font-size: 1.3em;
+      color: #666;
+      max-width: 800px;
+      margin: 0 auto 60px;
+    }
+
+    .problems-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 30px;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .problem-card {
+      background: white;
+      padding: 40px;
+      border-radius: 16px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    }
+
+    .problem-icon {
+      font-size: 3em;
+      margin-bottom: 20px;
+    }
+
+    .problem-card h3 {
+      font-size: 1.5em;
+      margin-bottom: 15px;
+    }
+
+    .problem-card p {
+      color: #666;
+      font-size: 1em;
+    }
+
+    /* Solution Section */
+    .solution-section {
+      padding: 100px 40px;
+      text-align: center;
+    }
+
+    .solution-section h2 {
+      font-size: 3em;
+      margin-bottom: 60px;
+    }
+
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+      gap: 50px;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .feature-card {
+      text-align: left;
+      background: white;
+      padding: 40px;
+      border-radius: 16px;
+      border: 2px solid #f0f0f0;
+      transition: all 0.3s;
+    }
+
+    .feature-card:hover {
+      border-color: #667eea;
+      transform: translateY(-5px);
+      box-shadow: 0 15px 40px rgba(102, 126, 234, 0.15);
+    }
+
+    .feature-number {
+      font-size: 3em;
+      font-weight: 800;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 20px;
+    }
+
+    .feature-card h3 {
+      font-size: 1.8em;
+      margin-bottom: 15px;
+    }
+
+    .feature-card p {
+      color: #666;
+      font-size: 1.1em;
+      line-height: 1.8;
+      margin-bottom: 20px;
+    }
+
+    .feature-example {
+      background: #f8f9fa;
+      padding: 20px;
+      border-radius: 8px;
+      border-left: 4px solid #667eea;
+      font-family: 'Monaco', monospace;
+      font-size: 0.9em;
+      color: #333;
+    }
+
+    /* Demo Section */
+    .demo-section {
+      padding: 100px 40px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      text-align: center;
+    }
+
+    .demo-section h2 {
+      font-size: 3em;
+      margin-bottom: 40px;
+    }
+
+    .demo-video {
+      max-width: 900px;
+      margin: 0 auto;
+      background: rgba(255, 255, 255, 0.1);
+      padding: 60px;
+      border-radius: 16px;
+      font-size: 2em;
+      backdrop-filter: blur(10px);
+    }
+
+    /* Pricing Section */
+    .pricing-section {
+      padding: 100px 40px;
+      text-align: center;
+      background: #fafafa;
+    }
+
+    .pricing-section h2 {
+      font-size: 3em;
+      margin-bottom: 60px;
+    }
+
+    .pricing-card {
+      max-width: 500px;
+      margin: 0 auto;
+      background: white;
+      padding: 60px 40px;
+      border-radius: 20px;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+    }
+
+    .price {
+      font-size: 4em;
+      font-weight: 800;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 10px;
+    }
+
+    .price-period {
+      color: #666;
+      font-size: 1.2em;
+      margin-bottom: 40px;
+    }
+
+    .pricing-features {
+      text-align: left;
+      margin-bottom: 40px;
+    }
+
+    .pricing-features li {
+      padding: 15px 0;
+      font-size: 1.1em;
+      border-bottom: 1px solid #f0f0f0;
+    }
+
+    .pricing-features li:before {
+      content: '✓';
+      color: #28a745;
+      font-weight: bold;
+      margin-right: 15px;
+    }
+
+    /* Call to Action Section */
+    .tool-selection-section {
+      padding: 100px 40px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      text-align: center;
+    }
+
+    .tool-selection-section h2 {
+      font-size: 3em;
+      margin-bottom: 20px;
+      color: white;
+    }
+
+    .tool-selection-section p {
+      font-size: 1.3em;
+      color: rgba(255, 255, 255, 0.9);
+      margin-bottom: 40px;
+    }
+
+    .submit-btn {
+      padding: 20px 50px;
+      background: white;
+      color: #667eea;
+      border: none;
+      border-radius: 12px;
+      font-size: 1.2em;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+
+    .submit-btn:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3);
+    }
+
+    /* About Section */
+    .about-section {
+      padding: 100px 40px;
+      background: #fafafa;
+    }
+
+    .about-content {
+      max-width: 900px;
+      margin: 0 auto;
+    }
+
+    .about-section h2 {
+      font-size: 3em;
+      margin-bottom: 40px;
+      text-align: center;
+    }
+
+    .about-section p {
+      font-size: 1.2em;
+      line-height: 1.8;
+      color: #666;
+      margin-bottom: 30px;
+    }
+
+    .patent-notice {
+      text-align: center;
+      padding: 30px;
+      background: white;
+      border-radius: 12px;
+      border: 2px solid #667eea;
+      margin-top: 40px;
+    }
+
+    .patent-notice strong {
+      color: #667eea;
+      font-size: 1.2em;
+    }
+
+    /* Footer */
+    .footer {
+      padding: 60px 40px;
+      background: #1a1a1a;
+      color: white;
+      text-align: center;
+    }
+
+    .footer-links {
+      display: flex;
+      gap: 30px;
+      justify-content: center;
+      margin-bottom: 30px;
+    }
+
+    .footer-links a {
+      color: rgba(255, 255, 255, 0.7);
+      text-decoration: none;
+    }
+
+    .footer-links a:hover {
+      color: white;
+    }
+
+    @media (max-width: 768px) {
+      .header {
+        flex-direction: column;
+        gap: 15px;
+        padding: 15px 20px;
+      }
+
+      .logo {
+        font-size: 2em;
+      }
+
+      .nav-links {
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 10px;
+        width: 100%;
+      }
+
+      .nav-links a {
+        font-size: 0.9em;
+      }
+
+      .hero-image-only {
+        margin-top: 150px;
+      }
+
+      .about-section {
+        padding: 60px 20px;
+      }
+
+      .about-section h2 {
+        font-size: 2em;
+      }
+
+      .about-section p {
+        font-size: 1.1em;
+      }
+
+      .live-demo-section {
+        padding: 60px 20px;
+      }
+
+      .live-demo-section h2 {
+        font-size: 2em;
+      }
+
+      .demo-subtitle {
+        font-size: 1.1em;
+      }
+
+      .demo-container {
+        max-width: 100%;
+        padding: 0 10px;
+      }
+
+      .demo-chat-window {
+        border-radius: 30px;
+        border-width: 5px;
+      }
+
+      .demo-chat-window.phone-style {
+        aspect-ratio: 9/16;
+      }
+
+      .demo-chat-messages {
+        height: 350px;
+        padding: 20px;
+      }
+
+      .demo-message-content {
+        max-width: 85%;
+        padding: 12px 15px;
+        font-size: 0.95em;
+      }
+
+      .demo-data-card {
+        padding: 15px;
+      }
+
+      .demo-data-row {
+        flex-direction: column;
+        gap: 5px;
+        align-items: flex-start;
+      }
+
+      .demo-input-area {
+        padding: 15px;
+        flex-wrap: wrap;
+      }
+
+      .demo-input-area input {
+        width: 100%;
+        margin-bottom: 10px;
+      }
+
+      .demo-send-btn {
+        flex: 1;
+      }
+
+      .demo-voice-btn {
+        padding: 12px;
+      }
+
+      .demo-suggestions {
+        gap: 10px;
+        max-width: 100%;
+      }
+
+      .demo-suggestion-btn {
+        padding: 14px 20px;
+        font-size: 0.95em;
+      }
+
+      .stats-section {
+        padding: 60px 20px;
+      }
+
+      .stats-grid {
+        grid-template-columns: 1fr;
+        gap: 20px;
+      }
+
+      .stat-card {
+        padding: 30px;
+      }
+
+      .stat-number {
+        font-size: 2.5em;
+      }
+
+      .phone-ai-section {
+        padding: 60px 20px;
+      }
+
+      .phone-ai-content h2 {
+        font-size: 2em;
+      }
+
+      .phone-ai-subtitle {
+        font-size: 1.1em;
+        padding: 0 10px;
+      }
+
+      .phone-ai-features {
+        grid-template-columns: 1fr;
+        gap: 30px;
+      }
+
+      .phone-ai-feature {
+        padding: 30px 20px;
+      }
+
+      .feature-header {
+        flex-direction: column;
+        text-align: center;
+        gap: 10px;
+      }
+
+      .phone-ai-cta {
+        padding: 40px 20px;
+      }
+
+      .phone-ai-cta h3 {
+        font-size: 1.5em;
+      }
+
+      .use-cases {
+        gap: 10px;
+      }
+
+      .use-case {
+        font-size: 0.95em;
+        padding: 12px 20px;
+      }
+
+      .dashboard-custom-section {
+        padding: 60px 20px;
+      }
+
+      .dashboard-custom-section h2 {
+        font-size: 2em;
+      }
+
+      .dashboard-custom-section .subtitle {
+        font-size: 1.1em;
+        padding: 0 10px;
+      }
+
+      .custom-features {
+        grid-template-columns: 1fr;
+        gap: 30px;
+      }
+
+      .custom-feature-card {
+        padding: 30px 20px;
+      }
+
+      .custom-examples {
+        padding: 30px 20px;
+      }
+
+      .custom-examples h3 {
+        font-size: 1.5em;
+      }
+
+      .example-list li {
+        font-size: 1em;
+      }
+
+      .problem-section h2,
+      .solution-section h2,
+      .tool-selection-section h2,
+      .about-section h2,
+      .pricing-section h2 {
+        font-size: 2em;
+      }
+
+      .problems-grid,
+      .features-grid,
+      .tools-grid {
+        grid-template-columns: 1fr;
+        gap: 20px;
+      }
+
+      .feature-example {
+        font-size: 0.9em;
+      }
+
+      .pricing-card {
+        padding: 40px 30px;
+      }
+
+      .about-section p {
+        font-size: 1em;
+        padding: 0 10px;
+      }
+
+      .tool-selection-section {
+        padding: 60px 20px;
+      }
+
+      .submit-btn {
+        padding: 15px 30px !important;
+        font-size: 1.1em !important;
+      }
+    }
+
+    /* Admin Settings Icon */
+    .admin-settings-icon {
+      position: fixed;
+      bottom: 30px;
+      right: 30px;
+      width: 50px;
+      height: 50px;
+      background: rgba(0, 0, 0, 0.7);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      z-index: 9999;
+      text-decoration: none;
+      backdrop-filter: blur(10px);
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    }
+
+    .admin-settings-icon:hover {
+      background: rgba(0, 0, 0, 0.9);
+      transform: rotate(90deg) scale(1.1);
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+    }
+
+    .admin-settings-icon svg {
+      width: 24px;
+      height: 24px;
+      fill: white;
+    }
+
+    @media (max-width: 768px) {
+      .admin-settings-icon {
+        bottom: 20px;
+        right: 20px;
+        width: 45px;
+        height: 45px;
+      }
+
+      .admin-settings-icon svg {
+        width: 20px;
+        height: 20px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Header -->
+  <div class="header">
+    <div class="logo">
+      THE GHOST OS
+    </div>
+    <div class="nav-links">
+      <p style="font-size: 1.1em; color: #666; font-style: italic; margin: 0;">The first private AI you can truly just talk to</p>
+      <button class="btn-get-info" onclick="openInfoModal()">Get Info</button>
+    </div>
+  </div>
+
+  <!-- Hero Video Section -->
+  <section class="hero-image-only">
+    <video autoplay muted loop playsinline>
+      <source src="hero-video.mp4" type="video/mp4">
+      Your browser does not support the video tag.
+    </video>
+  </section>
+
+  <!-- About Section -->
+  <section class="about-section" id="about">
+    <div class="about-container">
+      <h2 style="font-size: 2.5em; margin-bottom: 20px; text-align: center; color: #000;">ChatGPT, Gemini, and Grok</h2>
+      <h2 style="font-size: 2.5em; margin-bottom: 30px; text-align: center;">What is THE GHOST OS?</h2>
+      <p>
+        Ghost OS is your AI-powered freedom line—patent pending. It's the way you can finally talk to an AI without big tech tracking you or building a profile on you. It works as simply as a phone call. You dial in, and that call connects you directly to an AI. On your side, it feels just like talking to someone. On our side, there's no tracking just a simple server that keeps you anonymous. You finally get to ask questions and use AI with complete privacy. In other words, you've got your freedom back—and that's a promise we're putting a patent on.
+      </p>
+    </div>
+  </section>
+
+  <!-- Feature Image Section -->
+  <section class="feature-image-section">
+    <img src="ghost-os-feature.png" alt="Ghost OS - Your Private Line to AI & Tools">
+  </section>
+
+  <!-- Waitlist Section -->
+  <section class="about-section">
+    <div class="about-container">
+      <h2 style="font-size: 2em; margin-bottom: 30px; text-align: center;">Join the Ghost OS Waitlist</h2>
+      <p style="font-size: 1.1em; line-height: 1.8; margin-bottom: 30px;">
+        Would you like to join the waitlist for Ghost OS? Just text this number and you'll be in line. We're going to start releasing numbers soon, and you'll be able to come back and choose your own number. We're not going to assign it to you, we want this to be as transparent as possible. So just text us, get on the list, and you'll pick your number when it's time.
+      </p>
+      <div style="text-align: center; margin-top: 40px;">
+        <p style="font-size: 1.2em; font-weight: 600; margin-bottom: 15px;">Text to get on list:</p>
+        <a href="sms:+12513135464" style="font-size: 2.5em; font-weight: 700; color: #667eea; text-decoration: none; display: block; margin-bottom: 10px;">(251) 313-5464</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Phone AI Assistant Section -->
+  <section class="phone-ai-section">
+    <div class="phone-ai-container">
+      <div class="phone-ai-content">
+        <h2>Your Voice AI Phone Assistant</h2>
+        <p class="phone-ai-subtitle">Call your business like it's an employee</p>
+
+        <div class="phone-ai-features">
+          <div class="phone-ai-feature">
+            <div class="feature-header">
+              <span class="feature-icon">📞</span>
+              <h3>Get Your Own Phone Number</h3>
+            </div>
+            <p>We give you a dedicated phone number that's answered 24/7 by your AI assistant. Call it from anywhere, anytime.</p>
+          </div>
+
+          <div class="phone-ai-feature">
+            <div class="feature-header">
+              <span class="feature-icon">🔄</span>
+              <h3>Connected to Your Tools</h3>
+            </div>
+            <p>Your AI assistant has access to all your connected tools. It pulls real data in real-time while you're on the call.</p>
+          </div>
+
+          <div class="phone-ai-feature">
+            <div class="feature-header">
+              <span class="feature-icon">⚡</span>
+              <h3>Instant Responses</h3>
+            </div>
+            <p>Get answers in seconds, not minutes. No logging in, no navigating dashboards. Just call, ask, and hang up.</p>
+          </div>
+
+          <div class="phone-ai-feature">
+            <div class="feature-header">
+              <span class="feature-icon">🔒</span>
+              <h3>Secure & Private</h3>
+            </div>
+            <p>Only you can call your number. All data is encrypted. Your business information stays private.</p>
+          </div>
+
+          <div class="phone-ai-feature">
+            <div class="feature-header">
+              <span class="feature-icon">💬</span>
+              <h3>Use Voice OR Chat</h3>
+            </div>
+            <p>Don't want to call? Text your AI assistant. Same assistant, multiple ways to interact.</p>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <script>
+    // Smooth scroll for anchor links
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+      anchor.addEventListener('click', function (e) {
+        e.preventDefault();
+        const target = document.querySelector(this.getAttribute('href'));
+        if (target) {
+          target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      });
+    });
+
+    // Interactive Demo with Voice (only if demo elements exist)
+    const demoChatMessages = document.getElementById('demoChatMessages');
+    const demoInput = document.getElementById('demoInput');
+    const demoSendBtn = document.getElementById('demoSendBtn');
+    const demoVoiceBtn = document.getElementById('demoVoiceBtn');
+    const demoSuggestionBtns = document.querySelectorAll('.demo-suggestion-btn');
+
+    // Only run demo code if elements exist
+    if (demoChatMessages && demoInput && demoSendBtn) {
+
+    // Text-to-Speech with Coqui TTS
+    let currentAudio = null;
+    let isSpeaking = false;
+    let voiceEnabled = true;
+    const TTS_SERVER_URL = 'http://localhost:5001';  // Change to your server URL in production
+
+    // Voice toggle button
+    const voiceToggle = document.getElementById('voiceToggle');
+    const voiceIcon = document.getElementById('voiceIcon');
+    const voiceLabel = document.getElementById('voiceLabel');
+
+    if (voiceToggle) {
+      voiceToggle.addEventListener('click', () => {
+        voiceEnabled = !voiceEnabled;
+        if (voiceEnabled) {
+          voiceIcon.textContent = '🔊';
+          voiceLabel.textContent = 'Voice On';
+          voiceToggle.classList.remove('muted');
+        } else {
+          voiceIcon.textContent = '🔇';
+          voiceLabel.textContent = 'Voice Off';
+          voiceToggle.classList.add('muted');
+          // Stop current audio
+          if (currentAudio) {
+            currentAudio.pause();
+            currentAudio = null;
+          }
+        }
+      });
+    }
+
+    // Clear chat button functionality
+    const clearChatBtn = document.getElementById('clearChatBtn');
+    if (clearChatBtn) {
+      clearChatBtn.addEventListener('click', () => {
+        // Clear all messages except the initial greeting
+        demoChatMessages.innerHTML = `
+          <div class="demo-message assistant">
+            <div class="demo-avatar">🤖</div>
+            <div class="demo-message-content">
+              Hi! I'm your THE GHOST AI assistant. Ask me anything about your business—just like calling an employee who knows everything. Try one of the questions below or ask your own!
+            </div>
+          </div>
+        `;
+
+        // Reset conversation context
+        conversationHistory = [];
+        lastTool = null;
+
+        // Stop any ongoing speech
+        if (currentAudio) {
+          currentAudio.pause();
+          currentAudio = null;
+        }
+      });
+    }
+
+    // Coqui TTS speak function
+    async function speak(text) {
+      if (!voiceEnabled) return;
+
+      // Stop any currently playing audio
+      if (currentAudio) {
+        currentAudio.pause();
+        currentAudio = null;
+      }
+
+      try {
+        isSpeaking = true;
+
+        // Call TTS server
+        const response = await fetch(`${TTS_SERVER_URL}/synthesize`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            text: text,
+            speed: 1.0  // Normal speed, adjust between 0.5-2.0
+          })
+        });
+
+        if (!response.ok) {
+          throw new Error(`TTS server error: ${response.status}`);
+        }
+
+        // Get audio blob
+        const audioBlob = await response.blob();
+        const audioUrl = URL.createObjectURL(audioBlob);
+
+        // Play audio
+        currentAudio = new Audio(audioUrl);
+        currentAudio.onended = () => {
+          isSpeaking = false;
+          URL.revokeObjectURL(audioUrl);
+          currentAudio = null;
+        };
+        currentAudio.onerror = () => {
+          isSpeaking = false;
+          console.error('Error playing audio');
+        };
+
+        await currentAudio.play();
+
+      } catch (error) {
+        console.error('TTS Error:', error);
+        isSpeaking = false;
+        // Fallback to browser TTS if server fails
+        speakFallback(text);
+      }
+    }
+
+    // Fallback to browser speech synthesis if TTS server fails
+    function speakFallback(text) {
+      if (!voiceEnabled) return;
+
+      const synth = window.speechSynthesis;
+      if (synth.speaking) {
+        synth.cancel();
+      }
+
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.rate = 1.0;
+      utterance.pitch = 1.0;
+      utterance.volume = 1.0;
+
+      isSpeaking = true;
+      utterance.onend = () => {
+        isSpeaking = false;
+      };
+
+      synth.speak(utterance);
+    }
+
+    // Conversation context
+    let conversationHistory = [];
+    let lastTool = null;
+
+    // Question logging for model training
+    let questionLog = [];
+
+    function logQuestion(question, response) {
+      const logEntry = {
+        timestamp: new Date().toISOString(),
+        question: question,
+        response: response.text,
+        tool: response.tool || 'general',
+        sessionId: getSessionId()
+      };
+      questionLog.push(logEntry);
+
+      // TODO: Send to backend API for storage
+      // fetch('/api/log-question', {
+      //   method: 'POST',
+      //   headers: { 'Content-Type': 'application/json' },
+      //   body: JSON.stringify(logEntry)
+      // });
+
+      console.log('Question logged:', logEntry);
+    }
+
+    function getSessionId() {
+      if (!localStorage.getItem('demo_session_id')) {
+        localStorage.setItem('demo_session_id', 'demo_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9));
+      }
+      return localStorage.getItem('demo_session_id');
+    }
+
+    // Mock data responses
+    const mockResponses = {
+      shopify_sales: {
+        text: "Here are your Shopify sales for this week:",
+        data: {
+          title: "Weekly Shopify Sales",
+          rows: [
+            { label: "Total Revenue", value: "$15,234" },
+            { label: "Orders", value: "203" },
+            { label: "Average Order Value", value: "$75.06" },
+            { label: "Top Product", value: "Blue Sneakers ($2,341)" },
+            { label: "vs Last Week", value: "+23% ↑" }
+          ]
+        }
+      },
+      hubspot_leads: {
+        text: "Here are your new HubSpot leads:",
+        data: {
+          title: "New Leads (Last 7 Days)",
+          rows: [
+            { label: "Total New Leads", value: "47" },
+            { label: "Qualified Leads", value: "23" },
+            { label: "Demo Requests", value: "12" },
+            { label: "Top Source", value: "Google Ads (18 leads)" },
+            { label: "Conversion Rate", value: "12.4%" }
+          ]
+        }
+      },
+      gmail: {
+        text: "Here are your recent Gmail messages:",
+        data: {
+          title: "Inbox (Last 5 emails)",
+          rows: [
+            { label: "Sarah Johnson", value: "Project update needed" },
+            { label: "Mike Chen", value: "Meeting rescheduled to 3pm" },
+            { label: "Stripe", value: "Payment received $499" },
+            { label: "Google Ads", value: "Your campaign is performing well" },
+            { label: "Team Updates", value: "Weekly standup notes" }
+          ]
+        }
+      },
+      calendar: {
+        text: "Here are your upcoming appointments today:",
+        data: {
+          title: "Today's Calendar",
+          rows: [
+            { label: "10:00 AM", value: "Team Standup (30 min)" },
+            { label: "11:30 AM", value: "Client Call - Acme Corp (1 hour)" },
+            { label: "2:00 PM", value: "Product Demo (45 min)" },
+            { label: "3:30 PM", value: "Marketing Review (30 min)" },
+            { label: "Total Meetings", value: "4 meetings (2h 45min)" }
+          ]
+        }
+      },
+      square: {
+        text: "Here are your recent Square transactions:",
+        data: {
+          title: "Square Transactions (Today)",
+          rows: [
+            { label: "Total Transactions", value: "87" },
+            { label: "Total Revenue", value: "$4,231" },
+            { label: "Average Transaction", value: "$48.63" },
+            { label: "Card Payments", value: "72 ($3,890)" },
+            { label: "Cash Payments", value: "15 ($341)" }
+          ]
+        }
+      },
+      stripe_revenue: {
+        text: "Here's your Stripe revenue for this month:",
+        data: {
+          title: "Monthly Stripe Revenue",
+          rows: [
+            { label: "Total Revenue", value: "$42,891" },
+            { label: "Successful Payments", value: "234" },
+            { label: "Subscriptions", value: "89 ($12,450/mo)" },
+            { label: "One-time Payments", value: "$30,441" },
+            { label: "vs Last Month", value: "+18% ↑" }
+          ]
+        }
+      },
+      quickbooks: {
+        text: "Here's your QuickBooks financial summary:",
+        data: {
+          title: "QuickBooks Overview (This Month)",
+          rows: [
+            { label: "Total Income", value: "$58,392" },
+            { label: "Total Expenses", value: "$23,145" },
+            { label: "Net Profit", value: "$35,247" },
+            { label: "Outstanding Invoices", value: "12 ($8,934)" },
+            { label: "Profit Margin", value: "60.4%" }
+          ]
+        }
+      },
+      google_business: {
+        text: "Here's your Google My Business data:",
+        data: {
+          title: "Google My Business (This Week)",
+          rows: [
+            { label: "Profile Views", value: "1,247" },
+            { label: "New Reviews", value: "8 (4.8★ avg)" },
+            { label: "Phone Calls", value: "34" },
+            { label: "Direction Requests", value: "89" },
+            { label: "vs Last Week", value: "+15% ↑" }
+          ]
+        }
+      },
+      email_report: {
+        text: "I can email you any data from your connected tools. What would you like me to send?",
+        data: {
+          title: "Email Delivery Options",
+          rows: [
+            { label: "📊", value: "Daily sales summary" },
+            { label: "📈", value: "Weekly revenue report" },
+            { label: "📋", value: "Monthly financial summary" },
+            { label: "🎯", value: "New leads & conversions" },
+            { label: "📅", value: "Today's appointments" }
+          ]
+        }
+      },
+      sms_report: {
+        text: "I can text you quick summaries anytime. Just ask and I'll send it to your phone.",
+        data: {
+          title: "Text Message Options",
+          rows: [
+            { label: "💰", value: "Today's total sales" },
+            { label: "📞", value: "Missed calls & voicemails" },
+            { label: "⚠️", value: "Important alerts" },
+            { label: "📊", value: "Key metrics snapshot" },
+            { label: "✓", value: "Task completion updates" }
+          ]
+        }
+      },
+      automated_report: {
+        text: "I can automatically gather data from all your tools and send you regular reports. No manual work needed!",
+        data: {
+          title: "Automated Report Examples",
+          rows: [
+            { label: "Weekly Earnings", value: "Sales, revenue, profit breakdown" },
+            { label: "Invoice Summary", value: "Sent, paid, outstanding invoices" },
+            { label: "Hours Tracking", value: "Team hours, project time logs" },
+            { label: "Customer Activity", value: "New leads, conversions, reviews" },
+            { label: "Delivery", value: "Email or SMS, your choice" }
+          ]
+        }
+      },
+      ai_insights: {
+        text: "Based on your real-time data, here are some AI-powered insights:",
+        data: {
+          title: "AI Business Insights",
+          rows: [
+            { label: "💡 Opportunity", value: "Mobile sales up 67% - optimize mobile checkout" },
+            { label: "⚠️ Alert", value: "12 invoices overdue - total $8,934" },
+            { label: "📈 Trend", value: "Sales growing 23% week-over-week" },
+            { label: "🎯 Recommendation", value: "Google Ads performing best - increase budget" },
+            { label: "⏰ Action", value: "3 leads haven't been contacted in 48hrs" }
+          ]
+        }
+      }
+    };
+
+    function addMessage(text, isUser, data = null) {
+      const messageDiv = document.createElement('div');
+      messageDiv.className = `demo-message ${isUser ? 'user' : 'assistant'}`;
+
+      let content = `
+        <div class="demo-avatar">${isUser ? '👤' : '🤖'}</div>
+        <div class="demo-message-content">
+          ${text}
+          ${data ? `
+            <div class="demo-data-card">
+              <h4>${data.title}</h4>
+              ${data.rows.map(row => `
+                <div class="demo-data-row">
+                  <span class="demo-data-label">${row.label}</span>
+                  <span class="demo-data-value">${row.value}</span>
+                </div>
+              `).join('')}
+            </div>
+          ` : ''}
+        </div>
+      `;
+
+      messageDiv.innerHTML = content;
+      demoChatMessages.appendChild(messageDiv);
+      demoChatMessages.scrollTop = demoChatMessages.scrollHeight;
+    }
+
+    function showTypingIndicator() {
+      const typingDiv = document.createElement('div');
+      typingDiv.className = 'demo-message assistant';
+      typingDiv.id = 'typingIndicator';
+      typingDiv.innerHTML = `
+        <div class="demo-avatar">🤖</div>
+        <div class="demo-message-content">
+          <div class="demo-typing">
+            <span></span><span></span><span></span>
+          </div>
+        </div>
+      `;
+      demoChatMessages.appendChild(typingDiv);
+      demoChatMessages.scrollTop = demoChatMessages.scrollHeight;
+    }
+
+    function removeTypingIndicator() {
+      const indicator = document.getElementById('typingIndicator');
+      if (indicator) indicator.remove();
+    }
+
+    // ============================================
+    // API INTEGRATION GUIDE
+    // ============================================
+    // To replace mock data with real API calls:
+    //
+    // 1. Replace this function with async function getResponse(question)
+    // 2. For each tool query (shopify, hubspot, etc), make API calls like:
+    //
+    //    if (q.includes('shopify') || q.includes('sales')) {
+    //      const response = await fetch('/api/shopify/sales', {
+    //        method: 'POST',
+    //        headers: { 'Content-Type': 'application/json' },
+    //        body: JSON.stringify({ question: question, timeframe: 'week' })
+    //      });
+    //      const data = await response.json();
+    //      return {
+    //        text: data.summary,
+    //        data: data.details,
+    //        tool: 'shopify_sales',
+    //        spokenText: data.spokenSummary
+    //      };
+    //    }
+    //
+    // 3. Update handleQuestion() to: const response = await getResponse(question);
+    // 4. Cache results in conversationHistory for follow-ups
+    // 5. Add error handling for failed API calls
+    // 6. Consider adding loading states and retry logic
+    // ============================================
+
+    function getResponse(question) {
+      const q = question.toLowerCase();
+
+      // Check for follow-up questions (more, details, why, how, etc.)
+      const isFollowUp = q.includes('more') || q.includes('detail') || q.includes('why') ||
+                         q.includes('how about') || q.includes('what about') ||
+                         q.includes('compare') || q.includes('also') ||
+                         (q.includes('what') && q.includes('that')) ||
+                         (q.includes('tell') && q.includes('more'));
+
+      // Handle follow-ups based on last tool
+      if (isFollowUp && lastTool) {
+        if (lastTool === 'shopify_sales') {
+          return {
+            text: "Your sales have been growing steadily. The top 3 products this week were Blue Sneakers ($2,341), Running Shorts ($1,823), and Yoga Mats ($1,456). Most sales came from mobile devices (67%). Would you like to see refunds or abandoned carts?",
+            data: null,
+            tool: 'shopify_sales',
+            spokenText: "Your sales have been growing steadily. The top 3 products this week were Blue Sneakers at $2,341, Running Shorts at $1,823, and Yoga Mats at $1,456. Most sales came from mobile devices at 67%."
+          };
+        } else if (lastTool === 'hubspot_leads') {
+          return {
+            text: "The 23 qualified leads include 8 from Healthcare, 7 from Tech, and 8 from Retail. The best performing campaign was your Google Ads 'Business Solutions' campaign with a 15% conversion rate.",
+            data: null,
+            tool: 'hubspot_leads',
+            spokenText: "The 23 qualified leads include 8 from Healthcare, 7 from Tech, and 8 from Retail. Your best campaign was Google Ads Business Solutions with 15% conversion."
+          };
+        }
+      }
+
+      // Check for conversational phrases
+      if (q.includes('thank') || q.includes('thanks')) {
+        return {
+          text: "You're welcome! Anything else you'd like to know about your business data?",
+          data: null,
+          spokenText: "You're welcome! Anything else you'd like to know?"
+        };
+      }
+
+      if (q.includes('hello') || q.includes('hi ') || q === 'hi') {
+        return {
+          text: "Hi! I'm your THE GHOST AI assistant. I can pull data from all your business tools. What would you like to know?",
+          data: null,
+          spokenText: "Hi! I'm your THE GHOST AI assistant. What would you like to know?"
+        };
+      }
+
+      // Email delivery requests (check BEFORE Gmail to avoid conflicts)
+      if (q.includes('email me') || q.includes('mail me') || (q.includes('email') && q.includes('send')) ||
+          (q.includes('send') && (q.includes('report') || q.includes('revenue')))) {
+        lastTool = 'email_report';
+        const response = mockResponses.email_report;
+        return {
+          ...response,
+          tool: 'email_report',
+          spokenText: "I can email you any data from your connected tools. What would you like me to send? I can do daily sales summaries, weekly revenue reports, monthly financial summaries, new leads and conversions, or today's appointments."
+        };
+      }
+
+      // SMS/Text delivery requests (check BEFORE other text-related searches)
+      if (q.includes('text me') || (q.includes('text') && q.includes('send')) || q.includes('sms')) {
+        lastTool = 'sms_report';
+        const response = mockResponses.sms_report;
+        return {
+          ...response,
+          tool: 'sms_report',
+          spokenText: "I can text you quick summaries anytime. Just ask and I'll send it to your phone. I can send today's sales, missed calls, important alerts, key metrics, or task updates."
+        };
+      }
+
+      // Automated report setup
+      if (q.includes('automat') || q.includes('weekly report') || q.includes('daily report') ||
+          (q.includes('send') && q.includes('every')) || q.includes('schedule')) {
+        lastTool = 'automated_report';
+        const response = mockResponses.automated_report;
+        return {
+          ...response,
+          tool: 'automated_report',
+          spokenText: "I can automatically gather data from all your tools and send you regular reports. No manual work needed! I can send weekly earnings, invoice summaries, hours tracking, customer activity, and deliver them via email or SMS."
+        };
+      }
+
+      // AI insights and suggestions
+      if (q.includes('insight') || q.includes('suggest') || q.includes('recommend') ||
+          q.includes('advice') || q.includes('what should') || q.includes('help me')) {
+        lastTool = 'ai_insights';
+        const response = mockResponses.ai_insights;
+        return {
+          ...response,
+          tool: 'ai_insights',
+          spokenText: "Based on your real-time data, here are some AI-powered insights. Mobile sales are up 67%, so I recommend optimizing your mobile checkout. You have 12 overdue invoices totaling $8,934. Sales are growing 23% week over week. Google Ads is your best performing channel, consider increasing budget. And 3 leads haven't been contacted in 48 hours."
+        };
+      }
+
+      // Shopify / Sales / Revenue
+      if (q.includes('shopify') || q.includes('sales') || q.includes('orders') ||
+          q.includes('revenue') || q.includes('yesterday') ||
+          (q.includes('make') || q.includes('made')) && (q.includes('week') || q.includes('month')) ||
+          q.includes('overnight') || (q.includes('product') && (q.includes('sold') || q.includes('most'))) ||
+          q.includes('cash flow') || q.includes('cash')) {
+        lastTool = 'shopify_sales';
+        const response = mockResponses.shopify_sales;
+        return {
+          ...response,
+          tool: 'shopify_sales',
+          spokenText: "This week you had $15,234 in sales from 203 orders. That's 23% higher than last week. Your top product was Blue Sneakers at $2,341."
+        };
+      }
+      // HubSpot
+      if (q.includes('hubspot') || q.includes('leads') || q.includes('crm')) {
+        lastTool = 'hubspot_leads';
+        const response = mockResponses.hubspot_leads;
+        return {
+          ...response,
+          tool: 'hubspot_leads',
+          spokenText: "You have 47 new leads in the last 7 days. 23 are qualified, and 12 requested demos. Top source was Google Ads with 18 leads."
+        };
+      }
+      // Gmail
+      if (q.includes('gmail') || q.includes('email') || q.includes('inbox') || q.includes('mail')) {
+        lastTool = 'gmail';
+        const response = mockResponses.gmail;
+        return {
+          ...response,
+          tool: 'gmail',
+          spokenText: "You have 5 recent emails. Sarah Johnson needs a project update, Mike Chen rescheduled to 3pm, Stripe confirms payment of $499, Google Ads says your campaign is performing well, and Team Updates sent weekly standup notes."
+        };
+      }
+      // Calendar
+      if (q.includes('calendar') || q.includes('appointment') || q.includes('meeting') || q.includes('schedule') || q.includes('today')) {
+        lastTool = 'calendar';
+        const response = mockResponses.calendar;
+        return {
+          ...response,
+          tool: 'calendar',
+          spokenText: "You have 4 meetings today. Team standup at 10am, client call with Acme Corp at 11:30, product demo at 2pm, and marketing review at 3:30. Total time is 2 hours 45 minutes."
+        };
+      }
+      // Square
+      if (q.includes('square') || q.includes('transaction')) {
+        lastTool = 'square';
+        const response = mockResponses.square;
+        return {
+          ...response,
+          tool: 'square',
+          spokenText: "Today you had 87 Square transactions totaling $4,231. Average transaction was $48.63. 72 card payments for $3,890 and 15 cash payments for $341."
+        };
+      }
+      // Stripe
+      if (q.includes('stripe') || q.includes('subscription')) {
+        lastTool = 'stripe_revenue';
+        const response = mockResponses.stripe_revenue;
+        return {
+          ...response,
+          tool: 'stripe_revenue',
+          spokenText: "This month's Stripe revenue is $42,891 from 234 successful payments. You have 89 active subscriptions generating $12,450 per month, and $30,441 in one-time payments. That's 18% higher than last month."
+        };
+      }
+      // QuickBooks
+      if (q.includes('quickbooks') || q.includes('expense') || q.includes('invoice') || q.includes('unpaid') || q.includes('profit') || q.includes('financial')) {
+        lastTool = 'quickbooks';
+        const response = mockResponses.quickbooks;
+        return {
+          ...response,
+          tool: 'quickbooks',
+          spokenText: "This month you have $58,392 in income and $23,145 in expenses. Net profit is $35,247 with a 60.4% profit margin. You have 12 outstanding invoices totaling $8,934."
+        };
+      }
+      // Google My Business
+      if (q.includes('google') || q.includes('review') || q.includes('business profile')) {
+        lastTool = 'google_business';
+        const response = mockResponses.google_business;
+        return {
+          ...response,
+          tool: 'google_business',
+          spokenText: "This week your Google Business Profile had 1,247 views, 8 new reviews averaging 4.8 stars, 34 phone calls, and 89 direction requests. That's 15% more than last week."
+        };
+      }
+
+      // Email delivery requests
+      if (q.includes('email') && (q.includes('send') || q.includes('mail me') || q.includes('email me'))) {
+        lastTool = 'email_report';
+        const response = mockResponses.email_report;
+        return {
+          ...response,
+          tool: 'email_report',
+          spokenText: "I can email you any data from your connected tools. What would you like me to send? I can do daily sales summaries, weekly revenue reports, monthly financial summaries, new leads and conversions, or today's appointments."
+        };
+      }
+
+      // SMS/Text delivery requests
+      if (q.includes('text') && (q.includes('send') || q.includes('text me') || q.includes('sms'))) {
+        lastTool = 'sms_report';
+        const response = mockResponses.sms_report;
+        return {
+          ...response,
+          tool: 'sms_report',
+          spokenText: "I can text you quick summaries anytime. Just ask and I'll send it to your phone. I can send today's sales, missed calls, important alerts, key metrics, or task updates."
+        };
+      }
+
+      // Automated report setup
+      if (q.includes('automat') || q.includes('weekly report') || q.includes('daily report') ||
+          (q.includes('send') && q.includes('every')) || q.includes('schedule')) {
+        lastTool = 'automated_report';
+        const response = mockResponses.automated_report;
+        return {
+          ...response,
+          tool: 'automated_report',
+          spokenText: "I can automatically gather data from all your tools and send you regular reports. No manual work needed! I can send weekly earnings, invoice summaries, hours tracking, customer activity, and deliver them via email or SMS."
+        };
+      }
+
+      // AI insights and suggestions
+      if (q.includes('insight') || q.includes('suggest') || q.includes('recommend') ||
+          q.includes('advice') || q.includes('what should') || q.includes('help me')) {
+        lastTool = 'ai_insights';
+        const response = mockResponses.ai_insights;
+        return {
+          ...response,
+          tool: 'ai_insights',
+          spokenText: "Based on your real-time data, here are some AI-powered insights. Mobile sales are up 67%, so I recommend optimizing your mobile checkout. You have 12 overdue invoices totaling $8,934. Sales are growing 23% week over week. Google Ads is your best performing channel, consider increasing budget. And 3 leads haven't been contacted in 48 hours."
+        };
+      }
+
+      // Handle comparisons
+      if (q.includes('compare') || q.includes('versus') || q.includes('vs')) {
+        return {
+          text: "I can compare data across your tools. For example, I can show Shopify sales vs Stripe revenue, or compare this month to last month. What would you like to compare?",
+          data: null,
+          spokenText: "I can compare data across your tools. What would you like to compare?"
+        };
+      }
+
+      // Off-topic response
+      if (!q.includes('shopify') && !q.includes('hubspot') && !q.includes('gmail') &&
+          !q.includes('calendar') && !q.includes('square') && !q.includes('stripe') &&
+          !q.includes('quickbooks') && !q.includes('google') && !q.includes('sales') &&
+          !q.includes('leads') && !q.includes('email') && !q.includes('appointment') &&
+          !q.includes('revenue') && !q.includes('data') && !q.includes('show') &&
+          !q.includes('send') && !q.includes('text') && !q.includes('automat') &&
+          !q.includes('insight') && !q.includes('suggest') && !q.includes('report') &&
+          q.length > 5) {
+        return {
+          text: "I'm focused on helping you with business data from your tools. I can show you sales, leads, emails, appointments, transactions, revenue, expenses, and more. I can also email or text you reports, set up automated reports, and give you AI insights. What would you like?",
+          data: null,
+          spokenText: "I'm focused on business data from your tools. I can also send reports and give you AI insights. What would you like?"
+        };
+      }
+
+      // Default response
+      return {
+        text: "I can help you with data from Shopify, HubSpot, Gmail, Calendar, Square, Stripe, QuickBooks, and Google My Business. I can also email or text you reports, set up automated reports, and give you AI insights. Try asking 'Show me sales' or 'Email me today's revenue' or 'Give me insights'!",
+        data: null,
+        spokenText: "I can show you data from all your tools, email or text you reports, set up automated reports, and give you AI insights. What would you like?"
+      };
+    }
+
+    function handleQuestion(question) {
+      if (!question.trim()) return;
+
+      // Add user message
+      addMessage(question, true);
+      conversationHistory.push({ role: 'user', content: question });
+
+      // Show typing indicator
+      showTypingIndicator();
+
+      // Simulate AI thinking time
+      setTimeout(() => {
+        removeTypingIndicator();
+        const response = getResponse(question);
+
+        // Log question for model training
+        logQuestion(question, response);
+
+        // Add assistant message
+        addMessage(response.text, false, response.data);
+        conversationHistory.push({ role: 'assistant', content: response.text });
+
+        // Speak the response
+        const textToSpeak = response.spokenText || response.text;
+        // Remove data card text for speech
+        const cleanText = textToSpeak.replace(/<[^>]*>/g, '');
+        speak(cleanText);
+      }, 1000 + Math.random() * 1000);
+
+      demoInput.value = '';
+    }
+
+    // Send button click
+    demoSendBtn.addEventListener('click', () => {
+      handleQuestion(demoInput.value);
+    });
+
+    // Enter key to send
+    demoInput.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') {
+        handleQuestion(demoInput.value);
+      }
+    });
+
+    // Suggestion buttons
+    demoSuggestionBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        const question = btn.getAttribute('data-question');
+        demoInput.value = question;
+        handleQuestion(question);
+      });
+    });
+
+    // Voice input
+    let recognition = null;
+    if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      recognition = new SpeechRecognition();
+      recognition.continuous = false;
+      recognition.interimResults = false;
+
+      recognition.onstart = () => {
+        demoVoiceBtn.classList.add('listening');
+      };
+
+      recognition.onresult = (event) => {
+        const transcript = event.results[0][0].transcript;
+        demoInput.value = transcript;
+        handleQuestion(transcript);
+      };
+
+      recognition.onend = () => {
+        demoVoiceBtn.classList.remove('listening');
+      };
+
+      demoVoiceBtn.addEventListener('click', () => {
+        if (demoVoiceBtn.classList.contains('listening')) {
+          recognition.stop();
+        } else {
+          recognition.start();
+        }
+      });
+    } else {
+      if (demoVoiceBtn) demoVoiceBtn.style.display = 'none';
+    }
+
+    } // End of demo code conditional
+
+    // Animated Counters
+    function animateCounter(element) {
+      const target = parseInt(element.getAttribute('data-target'));
+      const duration = 2000;
+      const increment = target / (duration / 16);
+      let current = 0;
+
+      const updateCounter = () => {
+        current += increment;
+        if (current < target) {
+          element.textContent = Math.floor(current);
+          requestAnimationFrame(updateCounter);
+        } else {
+          element.textContent = target;
+        }
+      };
+
+      updateCounter();
+    }
+
+    // Intersection Observer for counter animation
+    const observerOptions = {
+      threshold: 0.5,
+      rootMargin: '0px'
+    };
+
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          const counters = entry.target.querySelectorAll('.stat-number');
+          counters.forEach(counter => {
+            if (counter.textContent === '0') {
+              animateCounter(counter);
+            }
+          });
+          observer.unobserve(entry.target);
+        }
+      });
+    }, observerOptions);
+
+    const statsSection = document.querySelector('.stats-section');
+    if (statsSection) {
+      observer.observe(statsSection);
+    }
+
+  </script>
+
+  <!-- Get Info Modal -->
+  <div id="infoModal" class="modal">
+    <div class="modal-content">
+      <span class="close-modal" onclick="closeInfoModal()">&times;</span>
+
+      <h2>Get Ghost OS Updates</h2>
+      <p>Choose how you'd like to stay informed about Ghost OS</p>
+
+      <!-- Option 1: Text to Get Updates -->
+      <div class="text-option">
+        <h3>📱 Text Us Directly</h3>
+        <p style="margin: 10px 0; font-size: 1em;">Get instant updates via SMS</p>
+        <a href="sms:+12513135464">(251) 313-5464</a>
+        <p style="font-size: 0.9em; margin-top: 10px;">Just text "INFO" to get started</p>
+      </div>
+
+      <div class="divider">OR</div>
+
+      <!-- Option 2: Fill Out Form -->
+      <form id="infoForm" onsubmit="submitInfoForm(event)">
+        <div class="form-group">
+          <label for="name">Name *</label>
+          <input type="text" id="name" name="name" required placeholder="Enter your name">
+        </div>
+
+        <div class="form-group">
+          <label for="phone">Phone Number *</label>
+          <input type="tel" id="phone" name="phone" required placeholder="(555) 555-5555">
+        </div>
+
+        <div class="form-group">
+          <label for="email">Email *</label>
+          <input type="email" id="email" name="email" required placeholder="your@email.com">
+        </div>
+
+        <div class="checkbox-group">
+          <input type="checkbox" id="smsConsent" name="smsConsent" required>
+          <label for="smsConsent">
+            I consent to receive SMS messages from Ghost OS about updates, releases, and important information. Message and data rates may apply. Reply STOP to opt-out anytime.
+          </label>
+        </div>
+
+        <button type="submit" class="submit-btn">Get Updates</button>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    // Modal functions
+    function openInfoModal() {
+      document.getElementById('infoModal').style.display = 'block';
+      document.body.style.overflow = 'hidden'; // Prevent background scrolling
+    }
+
+    function closeInfoModal() {
+      document.getElementById('infoModal').style.display = 'none';
+      document.body.style.overflow = 'auto'; // Restore scrolling
+    }
+
+    // Close modal when clicking outside
+    window.onclick = function(event) {
+      const modal = document.getElementById('infoModal');
+      if (event.target === modal) {
+        closeInfoModal();
+      }
+    }
+
+    // Handle form submission
+    async function submitInfoForm(event) {
+      event.preventDefault();
+
+      const form = event.target;
+      const submitBtn = form.querySelector('.submit-btn');
+      const formData = {
+        name: form.name.value,
+        phone: form.phone.value,
+        email: form.email.value,
+        smsConsent: form.smsConsent.checked
+      };
+
+      // Disable button during submission
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Submitting...';
+
+      try {
+        // Send to your backend API
+        const response = await fetch('/api/waitlist/form', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(formData)
+        });
+
+        if (response.ok) {
+          alert('✅ Thank you! You\'re on the Ghost OS waitlist. Check your phone for a confirmation message.');
+          closeInfoModal();
+          form.reset();
+        } else {
+          alert('❌ Oops! Something went wrong. Please try texting us directly at (251) 313-5464');
+        }
+      } catch (error) {
+        console.error('Error submitting form:', error);
+        alert('❌ Oops! Something went wrong. Please try texting us directly at (251) 313-5464');
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Get Updates';
+      }
+    }
+  </script>
+
+  <!-- Admin Settings Icon -->
+  <a href="/admin-login.html" class="admin-settings-icon" title="Admin Settings">
+    <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+      <path d="M19.14,12.94c0.04-0.3,0.06-0.61,0.06-0.94c0-0.32-0.02-0.64-0.07-0.94l2.03-1.58c0.18-0.14,0.23-0.41,0.12-0.61 l-1.92-3.32c-0.12-0.22-0.37-0.29-0.59-0.22l-2.39,0.96c-0.5-0.38-1.03-0.7-1.62-0.94L14.4,2.81c-0.04-0.24-0.24-0.41-0.48-0.41 h-3.84c-0.24,0-0.43,0.17-0.47,0.41L9.25,5.35C8.66,5.59,8.12,5.92,7.63,6.29L5.24,5.33c-0.22-0.08-0.47,0-0.59,0.22L2.74,8.87 C2.62,9.08,2.66,9.34,2.86,9.48l2.03,1.58C4.84,11.36,4.8,11.69,4.8,12s0.02,0.64,0.07,0.94l-2.03,1.58 c-0.18,0.14-0.23,0.41-0.12,0.61l1.92,3.32c0.12,0.22,0.37,0.29,0.59,0.22l2.39-0.96c0.5,0.38,1.03,0.7,1.62,0.94l0.36,2.54 c0.05,0.24,0.24,0.41,0.48,0.41h3.84c0.24,0,0.44-0.17,0.47-0.41l0.36-2.54c0.59-0.24,1.13-0.56,1.62-0.94l2.39,0.96 c0.22,0.08,0.47,0,0.59-0.22l1.92-3.32c0.12-0.22,0.07-0.47-0.12-0.61L19.14,12.94z M12,15.6c-1.98,0-3.6-1.62-3.6-3.6 s1.62-3.6,3.6-3.6s3.6,1.62,3.6,3.6S13.98,15.6,12,15.6z"/>
+    </svg>
+  </a>
+
+</body>
+</html>

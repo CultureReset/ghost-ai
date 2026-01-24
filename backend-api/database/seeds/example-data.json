@@ -1,0 +1,422 @@
+{
+  "businesses": [
+    {
+      "id": "business_1",
+      "name": "Joe's Pizza",
+      "type": "restaurant",
+      "icon": "🍕",
+      "tagline": "Authentic Italian Pizza Since 1985",
+      "subdomain": "joespizza",
+      "owner_name": "John Doe",
+      "email": "john@joespizza.com",
+      "created_at": "2024-01-15T00:00:00Z"
+    },
+    {
+      "id": "business_2",
+      "name": "Gulf Adventure Charters",
+      "type": "charter",
+      "icon": "⚓",
+      "tagline": "Premium Deep Sea Fishing & Sunset Cruises",
+      "subdomain": "gulfadventure",
+      "owner_name": "Captain Mike",
+      "email": "mike@gulfadventure.com",
+      "created_at": "2024-02-01T00:00:00Z"
+    }
+  ],
+
+  "tools": [
+    {
+      "id": "stripe",
+      "name": "Stripe",
+      "icon": "💳",
+      "category": "payments",
+      "description": "Accept online payments, manage subscriptions, and track revenue",
+      "features": ["Online Payments", "Subscriptions", "Invoicing", "Analytics"]
+    },
+    {
+      "id": "square",
+      "name": "Square",
+      "icon": "⬛",
+      "category": "payments",
+      "description": "Complete POS system with payment processing and inventory management",
+      "features": ["POS System", "Online Payments", "Inventory", "Team Management"]
+    },
+    {
+      "id": "instagram",
+      "name": "Instagram",
+      "icon": "📸",
+      "category": "social",
+      "description": "Share photos and stories, engage with customers on social media",
+      "features": ["Posts", "Stories", "Analytics", "Direct Messages"]
+    },
+    {
+      "id": "facebook",
+      "name": "Facebook",
+      "icon": "📘",
+      "category": "social",
+      "description": "Manage your business page, run ads, and engage with customers",
+      "features": ["Page Posts", "Ads Manager", "Messenger", "Insights"]
+    },
+    {
+      "id": "google-analytics",
+      "name": "Google Analytics",
+      "icon": "📊",
+      "category": "analytics",
+      "description": "Track website traffic, user behavior, and conversion metrics",
+      "features": ["Traffic Analysis", "Conversion Tracking", "User Behavior", "Reports"]
+    },
+    {
+      "id": "google-calendar",
+      "name": "Google Calendar",
+      "icon": "📅",
+      "category": "productivity",
+      "description": "Manage appointments, bookings, and team schedules",
+      "features": ["Event Scheduling", "Booking System", "Reminders", "Team Calendars"]
+    },
+    {
+      "id": "mailchimp",
+      "name": "Mailchimp",
+      "icon": "📧",
+      "category": "marketing",
+      "description": "Email marketing campaigns, newsletters, and automation",
+      "features": ["Email Campaigns", "Automation", "Analytics", "Templates"]
+    },
+    {
+      "id": "twilio",
+      "name": "Twilio",
+      "icon": "💬",
+      "category": "communication",
+      "description": "Send SMS messages, make calls, and manage customer communications",
+      "features": ["SMS Messaging", "Voice Calls", "Phone Numbers", "WhatsApp"]
+    }
+  ],
+
+  "restaurant_dashboard_data": {
+    "business_id": "business_1",
+    "stats": {
+      "revenue_today": {
+        "value": 1247,
+        "change": 12,
+        "source": "Stripe"
+      },
+      "orders_today": {
+        "value": 47,
+        "change": 8,
+        "source": "Square POS"
+      },
+      "website_visitors": {
+        "value": 2341,
+        "change": 23,
+        "source": "Google Analytics"
+      },
+      "instagram_engagement": {
+        "value": 1284,
+        "change": 15,
+        "source": "Instagram"
+      }
+    },
+    "stripe_weekly_sales": [
+      { "day": "Monday", "amount": 847 },
+      { "day": "Tuesday", "amount": 1024 },
+      { "day": "Wednesday", "amount": 745 },
+      { "day": "Thursday", "amount": 1157 },
+      { "day": "Friday", "amount": 1289 },
+      { "day": "Saturday", "amount": 1456 },
+      { "day": "Sunday", "amount": 978 }
+    ],
+    "square_recent_orders": [
+      {
+        "order_id": "1847",
+        "items": "2 Large Pepperoni",
+        "time": "2:45 PM",
+        "amount": 34.98
+      },
+      {
+        "order_id": "1846",
+        "items": "1 BBQ Chicken, Caesar Salad",
+        "time": "2:32 PM",
+        "amount": 28.50
+      },
+      {
+        "order_id": "1845",
+        "items": "3 Margherita, 2 Drinks",
+        "time": "2:18 PM",
+        "amount": 52.75
+      },
+      {
+        "order_id": "1844",
+        "items": "1 Hawaiian, Garlic Bread",
+        "time": "2:05 PM",
+        "amount": 21.99
+      }
+    ],
+    "google_analytics_top_pages": [
+      { "path": "/menu", "description": "Menu page", "views": 847 },
+      { "path": "/", "description": "Home page", "views": 523 },
+      { "path": "/specials", "description": "Daily specials", "views": 312 },
+      { "path": "/contact", "description": "Contact page", "views": 189 }
+    ]
+  },
+
+  "charter_dashboard_data": {
+    "business_id": "business_2",
+    "stats": {
+      "monthly_revenue": {
+        "value": 18450,
+        "change": 18,
+        "source": "Stripe"
+      },
+      "bookings_this_week": {
+        "value": 14,
+        "change": 6,
+        "source": "Google Calendar"
+      },
+      "customer_messages": {
+        "value": 23,
+        "unread": 5,
+        "source": "Twilio SMS"
+      },
+      "average_rating": {
+        "value": 4.9,
+        "review_count": 47,
+        "source": "Reviews"
+      }
+    },
+    "calendar_bookings": [
+      { "date": 2, "status": "booked" },
+      { "date": 4, "status": "booked" },
+      { "date": 6, "status": "booked" },
+      { "date": 7, "status": "booked" },
+      { "date": 10, "status": "booked" },
+      { "date": 12, "status": "booked" },
+      { "date": 13, "status": "booked" },
+      { "date": 14, "status": "booked" },
+      { "date": 16, "status": "booked" },
+      { "date": 19, "status": "booked" },
+      { "date": 20, "status": "booked" },
+      { "date": 21, "status": "booked" }
+    ],
+    "weather": {
+      "temperature": 78,
+      "condition": "Sunny & Clear",
+      "icon": "☀️",
+      "message": "Perfect conditions for fishing!"
+    },
+    "todays_charters": [
+      {
+        "name": "Johnson Family - Deep Sea Fishing",
+        "time": "6:00 AM - 12:00 PM",
+        "guests": 4,
+        "price": 850,
+        "status": "Confirmed"
+      },
+      {
+        "name": "Mike & Sarah - Sunset Cruise",
+        "time": "5:00 PM - 7:30 PM",
+        "guests": 2,
+        "price": 450,
+        "status": "Confirmed"
+      },
+      {
+        "name": "Bachelor Party - Half Day Charter",
+        "time": "1:00 PM - 5:00 PM",
+        "guests": 6,
+        "price": 1200,
+        "status": "Pending Payment"
+      }
+    ],
+    "recent_messages": [
+      {
+        "name": "John Smith",
+        "phone": "(251) 555-0123",
+        "message": "Can we bring our own cooler?",
+        "time": "15 min ago"
+      },
+      {
+        "name": "Emily Davis",
+        "phone": "(251) 555-0456",
+        "message": "What time should we arrive?",
+        "time": "1 hour ago"
+      },
+      {
+        "name": "Mike Johnson",
+        "phone": "(251) 555-0789",
+        "message": "Thanks for the great trip!",
+        "time": "3 hours ago"
+      }
+    ]
+  },
+
+  "ai_chat_examples": [
+    {
+      "user_message": "How much did I make on Stripe this week?",
+      "ai_response": {
+        "type": "chart",
+        "text": "Based on your Stripe data, here's your revenue for this week:",
+        "data": {
+          "Monday": 847,
+          "Tuesday": 1024,
+          "Wednesday": 745,
+          "Thursday": 1157,
+          "Friday": 1289,
+          "Saturday": 1456,
+          "Sunday": 978
+        },
+        "summary": "Total: $7,496 • That's 18% higher than last week! 🎉"
+      }
+    },
+    {
+      "user_message": "Show me my top Instagram posts this month",
+      "ai_response": {
+        "type": "list",
+        "text": "Here are your top performing Instagram posts from the past 30 days:",
+        "data": [
+          {
+            "title": "BBQ Chicken Pizza Special 🍕",
+            "likes": 1847,
+            "comments": 234,
+            "date": "Dec 18"
+          },
+          {
+            "title": "Behind the Scenes - Pizza Making 👨‍🍳",
+            "likes": 1523,
+            "comments": 189,
+            "date": "Dec 15"
+          },
+          {
+            "title": "Customer Review Highlight ⭐",
+            "likes": 1289,
+            "comments": 156,
+            "date": "Dec 12"
+          }
+        ],
+        "insight": "Posts featuring your signature pizzas get 2x more engagement than other content. Consider posting more product shots! 📸"
+      }
+    }
+  ],
+
+  "example_automations": [
+    {
+      "id": "automation_1",
+      "business_id": "business_1",
+      "name": "Daily Sales Report",
+      "enabled": true,
+      "schedule": "Every day at 9:00 AM",
+      "trigger": {
+        "type": "schedule",
+        "time": "09:00",
+        "frequency": "daily"
+      },
+      "actions": [
+        {
+          "type": "data_pull",
+          "service": "stripe",
+          "data": "sales"
+        },
+        {
+          "type": "data_pull",
+          "service": "square",
+          "data": "orders"
+        },
+        {
+          "type": "email",
+          "service": "mailchimp",
+          "template": "daily_report"
+        }
+      ]
+    },
+    {
+      "id": "automation_2",
+      "business_id": "business_1",
+      "name": "High-Value Customer Alert",
+      "enabled": true,
+      "schedule": "Real-time",
+      "trigger": {
+        "type": "webhook",
+        "service": "stripe",
+        "event": "payment.received"
+      },
+      "condition": {
+        "field": "amount",
+        "operator": "greater_than",
+        "value": 100
+      },
+      "actions_if_true": [
+        {
+          "type": "email",
+          "service": "mailchimp",
+          "template": "thank_you"
+        },
+        {
+          "type": "social_post",
+          "service": "instagram",
+          "template": "customer_shoutout"
+        }
+      ],
+      "actions_if_false": [
+        {
+          "type": "sms",
+          "service": "twilio",
+          "template": "receipt"
+        }
+      ]
+    },
+    {
+      "id": "automation_3",
+      "business_id": "business_1",
+      "name": "Instagram to Facebook Sync",
+      "enabled": false,
+      "schedule": "Real-time",
+      "trigger": {
+        "type": "webhook",
+        "service": "instagram",
+        "event": "post.created"
+      },
+      "actions": [
+        {
+          "type": "social_post",
+          "service": "facebook",
+          "template": "cross_post"
+        }
+      ]
+    }
+  ],
+
+  "automation_templates": [
+    {
+      "id": "template_high_value",
+      "name": "High-Value Customer Alert",
+      "category": "sales",
+      "popular": true,
+      "description": "Get notified when customers make large purchases so you can send personalized thank you messages.",
+      "trigger": "Stripe payment",
+      "condition": "amount > $100",
+      "actions": ["Send thank you email", "Post Instagram shoutout"]
+    },
+    {
+      "id": "template_daily_sales",
+      "name": "Daily Sales Report",
+      "category": "sales",
+      "description": "Receive a daily summary of your sales from Stripe and Square delivered to your inbox every morning.",
+      "trigger": "Daily at 9:00 AM",
+      "actions": ["Pull Stripe data", "Pull Square data", "Email report"]
+    },
+    {
+      "id": "template_cross_post",
+      "name": "Social Media Cross-Post",
+      "category": "marketing",
+      "popular": true,
+      "description": "Automatically share your Instagram posts to Facebook to maximize your social media reach.",
+      "trigger": "New Instagram post",
+      "actions": ["Share to Facebook page"]
+    },
+    {
+      "id": "template_review_request",
+      "name": "Review Request After Purchase",
+      "category": "customer",
+      "description": "Ask customers for reviews 3 days after their purchase to collect feedback and testimonials.",
+      "trigger": "Purchase complete",
+      "actions": ["Wait 3 days", "Send review request email"]
+    }
+  ]
+}

@@ -12,50 +12,25 @@ const VoiceResponse = twilio.twiml.VoiceResponse;
  * This is the main Twilio webhook for Ghost AI calls
  */
 router.post('/voice', async (req, res) => {
-  try {
-    const callSid = req.body.CallSid;
-    const from = req.body.From;
-    const to = req.body.To;
+  // Simple version - just answer the call
+  const twiml = new VoiceResponse();
 
-    logger.info(`📞 Ghost AI call from ${from} (${callSid})`);
+  twiml.say({
+    voice: 'Polly.Joanna',
+    language: 'en-US'
+  }, 'Hi! I am Ghost A I. How can I help you today?');
 
-    // Initialize voice session
-    await initializeVoiceSession(callSid, from);
+  // Gather speech input
+  const gather = twiml.gather({
+    input: 'speech',
+    action: '/api/ghost-ai/voice-response',
+    method: 'POST',
+    speechTimeout: 'auto',
+    language: 'en-US'
+  });
 
-    // Use simple GPT-4 voice interaction (no Realtime API needed)
-    const twiml = new VoiceResponse();
-
-    twiml.say({
-      voice: 'Polly.Joanna',
-      language: 'en-US'
-    }, 'Hi! I am Ghost A I. How can I help you today?');
-
-    // Gather speech input
-    const gather = twiml.gather({
-      input: 'speech',
-      action: '/api/ghost-ai/voice-response',
-      method: 'POST',
-      speechTimeout: 'auto',
-      language: 'en-US'
-    });
-
-    res.type('text/xml');
-    res.send(twiml.toString());
-
-  } catch (error) {
-    logger.error('Ghost AI voice webhook error:', error);
-
-    // Fallback TwiML
-    const twiml = new VoiceResponse();
-    twiml.say({
-      voice: 'Polly.Joanna',
-      language: 'en-US'
-    }, 'Sorry, I am having trouble connecting right now. Please try again in a moment.');
-    twiml.hangup();
-
-    res.type('text/xml');
-    res.send(twiml.toString());
-  }
+  res.type('text/xml');
+  res.send(twiml.toString());
 });
 
 /**

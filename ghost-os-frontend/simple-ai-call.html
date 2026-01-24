@@ -1,0 +1,688 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ghost AI - Your Private AI You Can Just Call</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      color: #1a1a1a;
+      line-height: 1.6;
+      background: #fff;
+    }
+
+    .header {
+      position: fixed;
+      top: 0;
+      width: 100%;
+      background: rgba(255, 255, 255, 0.98);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid #e0e0e0;
+      padding: 20px 5%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      z-index: 1000;
+    }
+
+    .logo {
+      font-size: 2em;
+      font-weight: 800;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .btn-join {
+      padding: 12px 30px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border: none;
+      border-radius: 30px;
+      font-weight: 600;
+      font-size: 1em;
+      cursor: pointer;
+      transition: transform 0.2s;
+      text-decoration: none;
+      display: inline-block;
+    }
+
+    .btn-join:hover {
+      transform: scale(1.05);
+    }
+
+    /* Hero Section */
+    .hero {
+      margin-top: 90px;
+      padding: 100px 5% 80px;
+      text-align: center;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+    }
+
+    .hero h1 {
+      font-size: 4em;
+      font-weight: 900;
+      margin-bottom: 20px;
+      line-height: 1.1;
+    }
+
+    .hero .tagline {
+      font-size: 1.8em;
+      margin-bottom: 15px;
+      opacity: 0.95;
+    }
+
+    .hero p {
+      font-size: 1.3em;
+      margin-bottom: 40px;
+      opacity: 0.9;
+      max-width: 700px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .price-highlight {
+      background: rgba(255, 255, 255, 0.2);
+      backdrop-filter: blur(10px);
+      padding: 30px 50px;
+      border-radius: 20px;
+      display: inline-block;
+      margin: 20px 0 40px;
+      border: 2px solid rgba(255, 255, 255, 0.3);
+    }
+
+    .price-highlight .price {
+      font-size: 4em;
+      font-weight: 900;
+      margin-bottom: 5px;
+    }
+
+    .price-highlight .period {
+      font-size: 1.2em;
+      opacity: 0.9;
+    }
+
+    .hero-cta {
+      display: flex;
+      gap: 20px;
+      justify-content: center;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .btn-primary {
+      padding: 20px 50px;
+      background: white;
+      color: #667eea;
+      border: none;
+      border-radius: 35px;
+      font-size: 1.3em;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.3s;
+      text-decoration: none;
+      display: inline-block;
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3);
+    }
+
+    /* Problem Section */
+    .problem-section {
+      padding: 100px 5%;
+      background: #fafafa;
+      text-align: center;
+    }
+
+    .problem-section h2 {
+      font-size: 3em;
+      margin-bottom: 20px;
+      color: #1a1a1a;
+    }
+
+    .problem-section p {
+      font-size: 1.4em;
+      color: #666;
+      max-width: 800px;
+      margin: 0 auto 60px;
+      line-height: 1.8;
+    }
+
+    .problems-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 40px;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .problem-card {
+      background: white;
+      padding: 50px 40px;
+      border-radius: 20px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+      transition: all 0.3s;
+    }
+
+    .problem-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 10px 30px rgba(102, 126, 234, 0.15);
+    }
+
+    .problem-icon {
+      font-size: 4em;
+      margin-bottom: 25px;
+    }
+
+    .problem-card h3 {
+      font-size: 1.6em;
+      margin-bottom: 15px;
+      color: #1a1a1a;
+    }
+
+    .problem-card p {
+      color: #666;
+      font-size: 1.1em;
+      line-height: 1.7;
+    }
+
+    /* How It Works */
+    .how-it-works {
+      padding: 100px 5%;
+      background: white;
+      text-align: center;
+    }
+
+    .how-it-works h2 {
+      font-size: 3em;
+      margin-bottom: 60px;
+    }
+
+    .steps-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 50px;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .step-card {
+      text-align: center;
+    }
+
+    .step-number {
+      width: 80px;
+      height: 80px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2.5em;
+      font-weight: 900;
+      margin: 0 auto 30px;
+    }
+
+    .step-card h3 {
+      font-size: 1.6em;
+      margin-bottom: 15px;
+    }
+
+    .step-card p {
+      color: #666;
+      font-size: 1.1em;
+      line-height: 1.7;
+    }
+
+    /* Use Cases */
+    .use-cases {
+      padding: 100px 5%;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+    }
+
+    .use-cases h2 {
+      font-size: 3em;
+      text-align: center;
+      margin-bottom: 60px;
+    }
+
+    .use-cases-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 30px;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .use-case-card {
+      background: rgba(255, 255, 255, 0.15);
+      backdrop-filter: blur(10px);
+      padding: 40px;
+      border-radius: 20px;
+      border: 2px solid rgba(255, 255, 255, 0.2);
+      transition: all 0.3s;
+    }
+
+    .use-case-card:hover {
+      background: rgba(255, 255, 255, 0.25);
+      transform: translateY(-5px);
+    }
+
+    .use-case-icon {
+      font-size: 3em;
+      margin-bottom: 20px;
+    }
+
+    .use-case-card h3 {
+      font-size: 1.5em;
+      margin-bottom: 15px;
+    }
+
+    .use-case-card p {
+      font-size: 1.1em;
+      line-height: 1.7;
+      opacity: 0.95;
+    }
+
+    /* Pricing Section */
+    .pricing-section {
+      padding: 100px 5%;
+      background: #fafafa;
+      text-align: center;
+    }
+
+    .pricing-section h2 {
+      font-size: 3em;
+      margin-bottom: 20px;
+    }
+
+    .pricing-section .subtitle {
+      font-size: 1.3em;
+      color: #666;
+      margin-bottom: 60px;
+    }
+
+    .pricing-card {
+      max-width: 600px;
+      margin: 0 auto;
+      background: white;
+      padding: 60px 50px;
+      border-radius: 30px;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+      border: 3px solid #667eea;
+    }
+
+    .pricing-card .plan-name {
+      font-size: 1.5em;
+      color: #667eea;
+      font-weight: 700;
+      margin-bottom: 20px;
+    }
+
+    .pricing-card .price {
+      font-size: 5em;
+      font-weight: 900;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 10px;
+    }
+
+    .pricing-card .period {
+      font-size: 1.3em;
+      color: #666;
+      margin-bottom: 40px;
+    }
+
+    .features-list {
+      text-align: left;
+      margin-bottom: 40px;
+    }
+
+    .features-list li {
+      padding: 15px 0;
+      font-size: 1.2em;
+      border-bottom: 1px solid #f0f0f0;
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+
+    .features-list li:before {
+      content: '✓';
+      color: #10b981;
+      font-weight: bold;
+      font-size: 1.5em;
+    }
+
+    /* FAQ */
+    .faq-section {
+      padding: 100px 5%;
+      background: white;
+    }
+
+    .faq-section h2 {
+      font-size: 3em;
+      text-align: center;
+      margin-bottom: 60px;
+    }
+
+    .faq-container {
+      max-width: 900px;
+      margin: 0 auto;
+    }
+
+    .faq-item {
+      background: #fafafa;
+      padding: 30px;
+      border-radius: 15px;
+      margin-bottom: 20px;
+    }
+
+    .faq-item h3 {
+      font-size: 1.4em;
+      margin-bottom: 15px;
+      color: #667eea;
+    }
+
+    .faq-item p {
+      font-size: 1.1em;
+      color: #666;
+      line-height: 1.8;
+    }
+
+    /* CTA Section */
+    .final-cta {
+      padding: 100px 5%;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      text-align: center;
+    }
+
+    .final-cta h2 {
+      font-size: 3.5em;
+      margin-bottom: 20px;
+    }
+
+    .final-cta p {
+      font-size: 1.5em;
+      margin-bottom: 40px;
+      opacity: 0.95;
+    }
+
+    .phone-cta {
+      background: rgba(255, 255, 255, 0.2);
+      backdrop-filter: blur(10px);
+      padding: 40px;
+      border-radius: 20px;
+      display: inline-block;
+      margin: 20px 0 40px;
+      border: 2px solid rgba(255, 255, 255, 0.3);
+    }
+
+    .phone-cta p {
+      font-size: 1.2em;
+      margin-bottom: 15px;
+      opacity: 1;
+    }
+
+    .phone-cta a {
+      color: white;
+      font-size: 3em;
+      font-weight: 900;
+      text-decoration: none;
+      display: block;
+      transition: all 0.3s;
+    }
+
+    .phone-cta a:hover {
+      transform: scale(1.05);
+    }
+
+    .footer {
+      padding: 40px 5%;
+      background: #1a1a1a;
+      color: white;
+      text-align: center;
+    }
+
+    .footer p {
+      color: #888;
+      font-size: 0.9em;
+    }
+
+    @media (max-width: 768px) {
+      .hero h1 {
+        font-size: 2.5em;
+      }
+
+      .hero .tagline {
+        font-size: 1.3em;
+      }
+
+      .price-highlight .price {
+        font-size: 2.5em;
+      }
+
+      .pricing-card .price {
+        font-size: 3.5em;
+      }
+
+      .problems-grid,
+      .steps-grid,
+      .use-cases-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Header -->
+  <div class="header">
+    <div class="logo">👻 GHOST AI</div>
+    <a href="sms:+12513135464" class="btn-join">Join Waitlist</a>
+  </div>
+
+  <!-- Hero -->
+  <section class="hero">
+    <h1>Your Private AI.<br>Just Call.</h1>
+    <p class="tagline">No apps. No tracking. No profiles.</p>
+    <p>Talk to AI like you're calling a friend. Ask questions, remember things, get instant answers. All completely private.</p>
+
+    <div class="price-highlight">
+      <div class="price">$20</div>
+      <div class="period">per month • ~10,000 tokens</div>
+    </div>
+
+    <div class="hero-cta">
+      <a href="sms:+12513135464" class="btn-primary">📱 Text to Join Waitlist</a>
+    </div>
+  </section>
+
+  <!-- Problem Section -->
+  <section class="problem-section">
+    <h2>AI Should Be This Simple</h2>
+    <p>You shouldn't need to open an app, create an account, or worry about your data being tracked just to ask AI a question.</p>
+
+    <div class="problems-grid">
+      <div class="problem-card">
+        <div class="problem-icon">🔒</div>
+        <h3>No Privacy</h3>
+        <p>ChatGPT, Gemini, and others build profiles on you. They track everything you ask and use it to train their models.</p>
+      </div>
+
+      <div class="problem-card">
+        <div class="problem-icon">📱</div>
+        <h3>Too Many Apps</h3>
+        <p>Open app, wait for it to load, type your question, wait for response. Why can't you just call and ask?</p>
+      </div>
+
+      <div class="problem-card">
+        <div class="problem-icon">🧠</div>
+        <h3>Forget Things</h3>
+        <p>You need AI to remember things for you, remind you of tasks, and help you stay organized - hands-free.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- How It Works -->
+  <section class="how-it-works">
+    <h2>Dead Simple</h2>
+
+    <div class="steps-grid">
+      <div class="step-card">
+        <div class="step-number">1</div>
+        <h3>Get Your Number</h3>
+        <p>Join the waitlist. We'll text you when it's your turn to pick your own private AI phone number.</p>
+      </div>
+
+      <div class="step-card">
+        <div class="step-number">2</div>
+        <h3>Call Anytime</h3>
+        <p>Just call your number like you're calling a friend. No apps, no logins, no hassle.</p>
+      </div>
+
+      <div class="step-card">
+        <div class="step-number">3</div>
+        <h3>Ask Anything</h3>
+        <p>Questions, reminders, brainstorming, memory aid - your AI handles it all. Completely private.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Use Cases -->
+  <section class="use-cases">
+    <h2>Perfect For</h2>
+
+    <div class="use-cases-grid">
+      <div class="use-case-card">
+        <div class="use-case-icon">💭</div>
+        <h3>Remember Everything</h3>
+        <p>"Hey Ghost, remind me Sarah's birthday is March 15th"<br><br>"What did I tell you about that meeting last week?"</p>
+      </div>
+
+      <div class="use-case-card">
+        <div class="use-case-icon">❓</div>
+        <h3>Quick Questions</h3>
+        <p>"What's 15% of $2,340?"<br><br>"How do I fix a leaky faucet?"<br><br>"Translate this to Spanish"</p>
+      </div>
+
+      <div class="use-case-card">
+        <div class="use-case-icon">🚗</div>
+        <h3>Hands-Free Help</h3>
+        <p>Driving, cooking, working out? Just call. Get answers without touching your phone.</p>
+      </div>
+
+      <div class="use-case-card">
+        <div class="use-case-icon">✍️</div>
+        <h3>Voice Notes</h3>
+        <p>"Ghost, take a note: Follow up with client about proposal"<br><br>"Read back my notes from yesterday"</p>
+      </div>
+
+      <div class="use-case-card">
+        <div class="use-case-icon">🧠</div>
+        <h3>Brainstorming</h3>
+        <p>Talk through ideas, get instant feedback, explore possibilities - all while walking, driving, or relaxing.</p>
+      </div>
+
+      <div class="use-case-card">
+        <div class="use-case-icon">🔐</div>
+        <h3>Private Thoughts</h3>
+        <p>Ask sensitive questions without worrying about data collection. Your conversations stay private.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Pricing -->
+  <section class="pricing-section">
+    <h2>Simple Pricing</h2>
+    <p class="subtitle">One plan. No hidden fees. Cancel anytime.</p>
+
+    <div class="pricing-card">
+      <div class="plan-name">Monthly Plan</div>
+      <div class="price">$20</div>
+      <div class="period">per month</div>
+
+      <ul class="features-list">
+        <li>~10,000 tokens per month</li>
+        <li>Your own private phone number</li>
+        <li>Unlimited calls & questions</li>
+        <li>Voice notes & reminders</li>
+        <li>Memory of past conversations</li>
+        <li>100% private - no tracking</li>
+        <li>24/7 availability</li>
+        <li>Cancel anytime</li>
+      </ul>
+
+      <a href="sms:+12513135464" class="btn-primary">Join Waitlist</a>
+    </div>
+  </section>
+
+  <!-- FAQ -->
+  <section class="faq-section">
+    <h2>Questions?</h2>
+
+    <div class="faq-container">
+      <div class="faq-item">
+        <h3>What are tokens?</h3>
+        <p>Tokens are how AI measures usage. ~10,000 tokens is about 7,500 words of conversation - enough for 100-200 calls per month, depending on how much you chat.</p>
+      </div>
+
+      <div class="faq-item">
+        <h3>Is this really private?</h3>
+        <p>Yes. We don't build profiles on you. We don't sell your data. Your conversations are encrypted and never used to train AI models. That's our promise - and it's patent pending.</p>
+      </div>
+
+      <div class="faq-item">
+        <h3>What if I run out of tokens?</h3>
+        <p>You'll get a notification when you're close. You can upgrade to a higher plan or wait until next month. We'll have higher-tier plans available soon.</p>
+      </div>
+
+      <div class="faq-item">
+        <h3>Can I pick my own number?</h3>
+        <p>Yes! When it's your turn, you'll get to choose from available numbers. We want this to feel personal.</p>
+      </div>
+
+      <div class="faq-item">
+        <h3>How does memory work?</h3>
+        <p>Ghost AI remembers what you tell it across calls. Ask it to remember something, and it will. Later, ask "what did I tell you about X?" and it recalls.</p>
+      </div>
+
+      <div class="faq-item">
+        <h3>When will this launch?</h3>
+        <p>We're rolling out to waitlist members soon. Join now to get early access and help shape the product.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Final CTA -->
+  <section class="final-cta">
+    <h2>Ready to Talk?</h2>
+    <p>Join the waitlist. Start talking to AI the way it should be - simple, private, and always available.</p>
+
+    <div class="phone-cta">
+      <p>Text this number to join:</p>
+      <a href="sms:+12513135464">(251) 313-5464</a>
+    </div>
+
+    <a href="sms:+12513135464" class="btn-primary">Join Waitlist Now</a>
+  </section>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <p>&copy; 2026 Ghost AI. Your privacy, guaranteed.</p>
+  </footer>
+</body>
+</html>
