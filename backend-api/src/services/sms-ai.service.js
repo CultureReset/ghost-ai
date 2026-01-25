@@ -146,7 +146,7 @@ async function getGrokResponse(userName, question, context = []) {
     // Use Grok as primary AI provider (faster and cheaper)
     try {
       const completion = await grok.chat.completions.create({
-        model: 'grok-2-1212',
+        model: 'grok-3',
         messages: messages,
         max_tokens: 500,
         temperature: 0.7

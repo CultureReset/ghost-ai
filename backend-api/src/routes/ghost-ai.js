@@ -145,7 +145,7 @@ router.all('/voice-response', async (req, res) => {
       });
 
       const completion = await grok.chat.completions.create({
-        model: 'grok-2-1212',
+        model: 'grok-3',
         messages: messages,
         max_tokens: 500,
         temperature: 0.7
