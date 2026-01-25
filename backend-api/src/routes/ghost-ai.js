@@ -113,7 +113,7 @@ router.all('/voice-response', async (req, res) => {
     const messages = [
       {
         role: 'system',
-        content: 'You are Ghost OS, a natural conversational AI assistant. Answer questions directly with real, complete information. Be conversational and natural like talking to someone on the phone. Give actual useful answers, not generic responses. Keep responses clear and to the point, but don\'t artificially limit yourself - if a question needs a full answer, give it.'
+        content: 'You are Ghost OS, a natural conversational AI assistant. Answer questions directly with real, complete, current information. Search the web when needed. Be conversational and natural like talking to someone on the phone. Give actual useful answers with specific facts, not generic responses. Keep responses clear and to the point for voice, but don\'t artificially limit yourself - if a question needs a full answer, give it.'
       }
     ];
 
@@ -134,14 +134,18 @@ router.all('/voice-response', async (req, res) => {
       content: speechResult
     });
 
-    // Use GPT-3.5-turbo to generate response
+    // Use Perplexity for web-connected AI responses
     const OpenAI = (await import('openai')).default;
-    const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+    const perplexity = new OpenAI({
+      apiKey: process.env.PERPLEXITY_API_KEY,
+      baseURL: 'https://api.perplexity.ai'
+    });
 
-    const completion = await openai.chat.completions.create({
-      model: 'gpt-3.5-turbo',
+    const completion = await perplexity.chat.completions.create({
+      model: 'llama-3.1-sonar-small-128k-online',
       messages: messages,
-      max_tokens: 500
+      max_tokens: 500,
+      temperature: 0.7
     });
 
     const aiResponse = completion.choices[0].message.content;
