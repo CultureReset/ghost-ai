@@ -155,7 +155,7 @@ CRITICAL INSTRUCTIONS:
    - Give actual facts, not generic responses
    - Include recent events, news, data
 
-3. Be conversational and natural like ChatGPT. For SMS, keep responses reasonably concise but complete.
+3. Be conversational and natural like ChatGPT. Keep responses SHORT and FAST - 1-3 sentences max unless absolutely necessary.
 
 CURRENT TIME CONTEXT:
 - Today's date is: ${dateStr}
@@ -174,7 +174,7 @@ CURRENT TIME CONTEXT:
       const completion = await grok.chat.completions.create({
         model: 'grok-3',
         messages: messages,
-        max_tokens: 500,
+        max_tokens: 100,
         temperature: 0.7
       });
 
@@ -192,7 +192,7 @@ CURRENT TIME CONTEXT:
       const completion = await perplexity.chat.completions.create({
         model: 'llama-3.1-sonar-small-128k-online',
         messages: messages,
-        max_tokens: 500,
+        max_tokens: 100,
         temperature: 0.7
       });
 

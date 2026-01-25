@@ -140,7 +140,7 @@ CRITICAL INSTRUCTIONS:
    - Give actual facts, not generic responses
    - Include recent events, news, data
 
-3. Talk naturally like you're having a phone conversation. Be conversational but give complete, useful answers.
+3. Talk naturally like you're having a phone conversation. Be conversational but keep answers SHORT and FAST - respond quickly with concise answers.
 
 CURRENT TIME CONTEXT:
 - Today's date is: ${dateStr}
@@ -179,7 +179,7 @@ CURRENT TIME CONTEXT:
       const completion = await grok.chat.completions.create({
         model: 'grok-3',
         messages: messages,
-        max_tokens: 500,
+        max_tokens: 100,
         temperature: 0.7
       });
 
@@ -196,7 +196,7 @@ CURRENT TIME CONTEXT:
       const completion = await perplexity.chat.completions.create({
         model: 'llama-3.1-sonar-small-128k-online',
         messages: messages,
-        max_tokens: 500,
+        max_tokens: 100,
         temperature: 0.7
       });
 
