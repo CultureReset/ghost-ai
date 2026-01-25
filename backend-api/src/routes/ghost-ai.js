@@ -187,7 +187,7 @@ CURRENT TIME CONTEXT:
       const completion = await perplexity.chat.completions.create({
         model: 'llama-3.1-sonar-small-128k-online',
         messages: messages,
-        max_tokens: 100,
+        max_tokens: 50,
         temperature: 0.7
       });
       aiResponse = completion.choices[0].message.content;
@@ -196,7 +196,7 @@ CURRENT TIME CONTEXT:
       const completion = await grok.chat.completions.create({
         model: 'grok-3',
         messages: messages,
-        max_tokens: 100,
+        max_tokens: 50,
         temperature: 0.7
       });
       aiResponse = completion.choices[0].message.content;

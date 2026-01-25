@@ -43,47 +43,13 @@ export async function handleAIQuestion(fromNumber, question, messageSid) {
     // Normalize phone number
     const phone = normalizePhoneNumber(fromNumber);
 
-    // Get user info and AI preference (optional - works without database)
-    let user = null;
-    let history = null;
-
-    if (supabase) {
-      try {
-        const { data: userData } = await supabase
-          .from('ghost_os_waitlist')
-          .select('preferred_ai, name, id')
-          .eq('phone_number', phone)
-          .single();
-        user = userData;
-
-        // Get conversation history (last 5 messages)
-        const { data: historyData } = await supabase
-          .from('sms_conversations')
-          .select('*')
-          .eq('phone_number', phone)
-          .order('created_at', { ascending: false })
-          .limit(5);
-        history = historyData;
-      } catch (dbError) {
-        logger.warn('Database query failed, continuing without user data:', dbError.message);
-      }
-    }
-
-    const aiProvider = user?.preferred_ai || 'openai';
-    const userName = user?.name || 'there';
-    const userId = user?.id;
-
-    // Build context from history (reverse to oldest first)
-    const conversationContext = history
-      ? history.reverse().map(msg => ({
-          role: msg.role,
-          content: msg.content
-        }))
-      : [];
+    // Skip database queries for maximum speed
+    const conversationContext = [];
+    const userId = null;
 
     // Get AI response (use Grok with date context)
     let aiResponse;
-    aiResponse = await getGrokResponse(userName, question, conversationContext);
+    aiResponse = await getGrokResponse('there', question, conversationContext);
 
     // Save conversation to database
     await saveSMSConversation(phone, userId, question, aiResponse, aiProvider, messageSid);
@@ -162,7 +128,7 @@ CURRENT TIME: ${dateStr}, ${timeStr}`;
       const completion = await perplexity.chat.completions.create({
         model: 'llama-3.1-sonar-small-128k-online',
         messages: messages,
-        max_tokens: 100,
+        max_tokens: 50,
         temperature: 0.7
       });
 
@@ -172,7 +138,7 @@ CURRENT TIME: ${dateStr}, ${timeStr}`;
       const completion = await grok.chat.completions.create({
         model: 'grok-3',
         messages: messages,
-        max_tokens: 100,
+        max_tokens: 50,
         temperature: 0.7
       });
 
