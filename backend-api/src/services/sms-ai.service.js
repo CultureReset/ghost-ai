@@ -81,15 +81,9 @@ export async function handleAIQuestion(fromNumber, question, messageSid) {
         }))
       : [];
 
-    // Get AI response (default to Grok)
+    // Get AI response (use Grok with date context)
     let aiResponse;
-    if (aiProvider === 'grok' || aiProvider === 'openai') {
-      aiResponse = await getGrokResponse(userName, question, conversationContext);
-    } else {
-      // For other providers, fall back to Grok
-      logger.warn(`Provider ${aiProvider} not yet supported for SMS. Falling back to Grok.`);
-      aiResponse = await getGrokResponse(userName, question, conversationContext);
-    }
+    aiResponse = await getGrokResponse(userName, question, conversationContext);
 
     // Save conversation to database
     await saveSMSConversation(phone, userId, question, aiResponse, aiProvider, messageSid);
@@ -122,7 +116,7 @@ export async function handleAIQuestion(fromNumber, question, messageSid) {
 }
 
 /**
- * Get response from Grok (primary AI provider)
+ * Get response from Grok with current date context
  * Falls back to Perplexity if Grok fails
  * @param {string} userName - User's name
  * @param {string} question - User's question
@@ -131,10 +125,29 @@ export async function handleAIQuestion(fromNumber, question, messageSid) {
  */
 async function getGrokResponse(userName, question, context = []) {
   try {
+    // Get current date and time
+    const now = new Date();
+    const dateStr = now.toLocaleDateString('en-US', {
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
+    const timeStr = now.toLocaleTimeString('en-US', {
+      hour: '2-digit',
+      minute: '2-digit',
+      timeZoneName: 'short'
+    });
+
     const messages = [
       {
         role: 'system',
-        content: `You are Ghost OS, a helpful AI assistant. Have natural conversations like ChatGPT or Perplexity. Give real answers with current information by searching the web. When something's unclear, ask what they mean. Be conversational and helpful. For SMS, try to keep responses reasonably concise but don't sacrifice quality - give complete, useful answers.`
+        content: `You are Ghost OS, a helpful AI assistant. Have natural conversations like ChatGPT or Perplexity. Give real answers with current information. When something's unclear, ask what they mean. Be conversational and helpful. For SMS, try to keep responses reasonably concise but don't sacrifice quality - give complete, useful answers.
+
+IMPORTANT CONTEXT:
+- Today's date is: ${dateStr}
+- Current time is: ${timeStr}
+- Use this information when answering questions about "today", "now", current events, etc.`
       },
       ...context,
       {
@@ -143,7 +156,7 @@ async function getGrokResponse(userName, question, context = []) {
       }
     ];
 
-    // Use Grok as primary AI provider (faster and cheaper)
+    // Try Grok first (faster and cheaper)
     try {
       const completion = await grok.chat.completions.create({
         model: 'grok-3',
@@ -154,7 +167,6 @@ async function getGrokResponse(userName, question, context = []) {
 
       const response = completion.choices[0].message.content.trim();
 
-      // If response is too long, truncate and add note
       if (response.length > 1500) {
         return response.substring(0, 1497) + '...';
       }
@@ -163,7 +175,7 @@ async function getGrokResponse(userName, question, context = []) {
     } catch (grokError) {
       logger.warn('Grok API failed, falling back to Perplexity:', grokError.message);
 
-      // Fallback to Perplexity
+      // Fallback to Perplexity (has web search)
       const completion = await perplexity.chat.completions.create({
         model: 'llama-3.1-sonar-small-128k-online',
         messages: messages,

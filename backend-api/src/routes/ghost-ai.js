@@ -109,11 +109,30 @@ router.all('/voice-response', async (req, res) => {
     // Get session to retrieve conversation history
     const session = getSessionInfo(callSid);
 
+    // Get current date and time for context
+    const now = new Date();
+    const dateStr = now.toLocaleDateString('en-US', {
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
+    const timeStr = now.toLocaleTimeString('en-US', {
+      hour: '2-digit',
+      minute: '2-digit',
+      timeZoneName: 'short'
+    });
+
     // Build conversation messages array
     const messages = [
       {
         role: 'system',
-        content: 'You are Ghost OS, a helpful AI assistant on a phone call. Have natural conversations like ChatGPT or Perplexity. Give real answers with current information by searching the web. When something\'s unclear, ask what they mean. Talk naturally like you\'re having a conversation on the phone. Give complete, useful answers.'
+        content: `You are Ghost OS, a helpful AI assistant on a phone call. Have natural conversations like ChatGPT or Perplexity. Give real answers with current information. When something's unclear, ask what they mean. Talk naturally like you're having a conversation on the phone. Give complete, useful answers.
+
+IMPORTANT CONTEXT:
+- Today's date is: ${dateStr}
+- Current time is: ${timeStr}
+- Use this information when answering questions about "today", "now", current events, etc.`
       }
     ];
 
