@@ -166,28 +166,11 @@ CURRENT TIME CONTEXT:
       content: speechResult
     });
 
-    // Use Grok as primary AI provider (faster and cheaper), fallback to Perplexity
+    // Use Perplexity as primary (has real-time web search), fallback to Grok
     const OpenAI = (await import('openai')).default;
 
     let aiResponse;
     try {
-      const grok = new OpenAI({
-        apiKey: process.env.GROK_API_KEY,
-        baseURL: 'https://api.x.ai/v1'
-      });
-
-      const completion = await grok.chat.completions.create({
-        model: 'grok-3',
-        messages: messages,
-        max_tokens: 100,
-        temperature: 0.7
-      });
-
-      aiResponse = completion.choices[0].message.content;
-    } catch (grokError) {
-      logger.warn('Grok API failed, falling back to Perplexity:', grokError.message);
-
-      // Fallback to Perplexity
       const perplexity = new OpenAI({
         apiKey: process.env.PERPLEXITY_API_KEY,
         baseURL: 'https://api.perplexity.ai'
@@ -195,6 +178,23 @@ CURRENT TIME CONTEXT:
 
       const completion = await perplexity.chat.completions.create({
         model: 'llama-3.1-sonar-small-128k-online',
+        messages: messages,
+        max_tokens: 100,
+        temperature: 0.7
+      });
+
+      aiResponse = completion.choices[0].message.content;
+    } catch (perplexityError) {
+      logger.warn('Perplexity API failed, falling back to Grok:', perplexityError.message);
+
+      // Fallback to Grok (no web search)
+      const grok = new OpenAI({
+        apiKey: process.env.GROK_API_KEY,
+        baseURL: 'https://api.x.ai/v1'
+      });
+
+      const completion = await grok.chat.completions.create({
+        model: 'grok-3',
         messages: messages,
         max_tokens: 100,
         temperature: 0.7

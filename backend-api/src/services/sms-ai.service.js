@@ -116,8 +116,8 @@ export async function handleAIQuestion(fromNumber, question, messageSid) {
 }
 
 /**
- * Get response from Grok with current date context
- * Falls back to Perplexity if Grok fails
+ * Get response from Perplexity with real-time web search
+ * Falls back to Grok if Perplexity fails
  * @param {string} userName - User's name
  * @param {string} question - User's question
  * @param {array} context - Conversation history
@@ -169,10 +169,10 @@ CURRENT TIME CONTEXT:
       }
     ];
 
-    // Try Grok first (faster and cheaper)
+    // Try Perplexity first (has real-time web search)
     try {
-      const completion = await grok.chat.completions.create({
-        model: 'grok-3',
+      const completion = await perplexity.chat.completions.create({
+        model: 'llama-3.1-sonar-small-128k-online',
         messages: messages,
         max_tokens: 100,
         temperature: 0.7
@@ -185,12 +185,12 @@ CURRENT TIME CONTEXT:
       }
 
       return response;
-    } catch (grokError) {
-      logger.warn('Grok API failed, falling back to Perplexity:', grokError.message);
+    } catch (perplexityError) {
+      logger.warn('Perplexity API failed, falling back to Grok:', perplexityError.message);
 
-      // Fallback to Perplexity (has web search)
-      const completion = await perplexity.chat.completions.create({
-        model: 'llama-3.1-sonar-small-128k-online',
+      // Fallback to Grok (no web search, but still works)
+      const completion = await grok.chat.completions.create({
+        model: 'grok-3',
         messages: messages,
         max_tokens: 100,
         temperature: 0.7
