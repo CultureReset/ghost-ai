@@ -23,6 +23,11 @@ const perplexity = new OpenAI({
   baseURL: 'https://api.perplexity.ai'
 });
 
+const grok = new OpenAI({
+  apiKey: process.env.GROK_API_KEY,
+  baseURL: 'https://api.x.ai/v1'
+});
+
 const GHOST_AI_NUMBER = process.env.GHOST_OS_WAITLIST_NUMBER;
 
 /**
@@ -76,14 +81,14 @@ export async function handleAIQuestion(fromNumber, question, messageSid) {
         }))
       : [];
 
-    // Get AI response
+    // Get AI response (default to Grok)
     let aiResponse;
-    if (aiProvider === 'openai') {
-      aiResponse = await getOpenAIResponse(userName, question, conversationContext);
+    if (aiProvider === 'grok' || aiProvider === 'openai') {
+      aiResponse = await getGrokResponse(userName, question, conversationContext);
     } else {
-      // For other providers, fall back to OpenAI for now
-      logger.warn(`Provider ${aiProvider} not yet supported for SMS. Falling back to OpenAI.`);
-      aiResponse = await getOpenAIResponse(userName, question, conversationContext);
+      // For other providers, fall back to Grok
+      logger.warn(`Provider ${aiProvider} not yet supported for SMS. Falling back to Grok.`);
+      aiResponse = await getGrokResponse(userName, question, conversationContext);
     }
 
     // Save conversation to database
@@ -117,13 +122,14 @@ export async function handleAIQuestion(fromNumber, question, messageSid) {
 }
 
 /**
- * Get response from OpenAI
+ * Get response from Grok (primary AI provider)
+ * Falls back to Perplexity if Grok fails
  * @param {string} userName - User's name
  * @param {string} question - User's question
  * @param {array} context - Conversation history
  * @returns {Promise<string>} - AI response
  */
-async function getOpenAIResponse(userName, question, context = []) {
+async function getGrokResponse(userName, question, context = []) {
   try {
     const messages = [
       {
@@ -137,25 +143,45 @@ async function getOpenAIResponse(userName, question, context = []) {
       }
     ];
 
-    // Use Perplexity for web-connected AI responses
-    const completion = await perplexity.chat.completions.create({
-      model: 'llama-3.1-sonar-small-128k-online',
-      messages: messages,
-      max_tokens: 500,
-      temperature: 0.7
-    });
+    // Use Grok as primary AI provider (faster and cheaper)
+    try {
+      const completion = await grok.chat.completions.create({
+        model: 'grok-beta',
+        messages: messages,
+        max_tokens: 500,
+        temperature: 0.7
+      });
 
-    const response = completion.choices[0].message.content.trim();
+      const response = completion.choices[0].message.content.trim();
 
-    // If response is too long, truncate and add note
-    if (response.length > 1500) {
-      return response.substring(0, 1497) + '...';
+      // If response is too long, truncate and add note
+      if (response.length > 1500) {
+        return response.substring(0, 1497) + '...';
+      }
+
+      return response;
+    } catch (grokError) {
+      logger.warn('Grok API failed, falling back to Perplexity:', grokError.message);
+
+      // Fallback to Perplexity
+      const completion = await perplexity.chat.completions.create({
+        model: 'llama-3.1-sonar-small-128k-online',
+        messages: messages,
+        max_tokens: 500,
+        temperature: 0.7
+      });
+
+      const response = completion.choices[0].message.content.trim();
+
+      if (response.length > 1500) {
+        return response.substring(0, 1497) + '...';
+      }
+
+      return response;
     }
 
-    return response;
-
   } catch (error) {
-    logger.error('OpenAI API error:', error);
+    logger.error('All AI providers failed:', error);
     throw error;
   }
 }
