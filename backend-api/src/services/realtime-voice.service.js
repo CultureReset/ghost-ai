@@ -47,6 +47,47 @@ export async function initializeVoiceSession(callSid, phoneNumber, aiProvider = 
 
     logger.info(`Initializing voice session for ${callSid} with AI: ${preferredAI}`);
 
+    // Load previous conversation history (last 5 calls)
+    let previousHistory = [];
+    if (supabase) {
+      try {
+        const { data: previousCalls } = await supabase
+          .from('phone_calls')
+          .select('transcript, created_at')
+          .eq('from_number', phoneNumber)
+          .eq('status', 'completed')
+          .order('created_at', { ascending: false })
+          .limit(5);
+
+        if (previousCalls && previousCalls.length > 0) {
+          // Parse transcripts and add to history (oldest first)
+          previousCalls.reverse().forEach(call => {
+            if (call.transcript) {
+              const turns = call.transcript.split('\n\n');
+              turns.forEach(turn => {
+                const colonIndex = turn.indexOf(':');
+                if (colonIndex > 0) {
+                  const role = turn.substring(0, colonIndex).trim();
+                  const content = turn.substring(colonIndex + 1).trim();
+                  if (content) {
+                    previousHistory.push({
+                      role: role === 'assistant' ? 'assistant' : 'user',
+                      content: content,
+                      timestamp: new Date(call.created_at)
+                    });
+                  }
+                }
+              });
+            }
+          });
+          logger.info(`Loaded ${previousHistory.length} previous conversation turns for ${phoneNumber}`);
+        }
+      } catch (dbError) {
+        logger.warn('Could not load conversation history from database:', dbError.message);
+        // Continue without history
+      }
+    }
+
     // Create session data
     const sessionData = {
       callSid,
@@ -54,7 +95,7 @@ export async function initializeVoiceSession(callSid, phoneNumber, aiProvider = 
       aiProvider: preferredAI,
       userName,
       startTime: new Date(),
-      conversationHistory: [],
+      conversationHistory: previousHistory,
       aiWebSocket: null,
       twilioWebSocket: null
     };

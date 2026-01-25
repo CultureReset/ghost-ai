@@ -33,24 +33,35 @@ export async function handleAIQuestion(fromNumber, question, messageSid) {
     // Normalize phone number
     const phone = normalizePhoneNumber(fromNumber);
 
-    // Get user info and AI preference
-    const { data: user } = await supabase
-      .from('ghost_os_waitlist')
-      .select('preferred_ai, name, id')
-      .eq('phone_number', phone)
-      .single();
+    // Get user info and AI preference (optional - works without database)
+    let user = null;
+    let history = null;
+
+    if (supabase) {
+      try {
+        const { data: userData } = await supabase
+          .from('ghost_os_waitlist')
+          .select('preferred_ai, name, id')
+          .eq('phone_number', phone)
+          .single();
+        user = userData;
+
+        // Get conversation history (last 5 messages)
+        const { data: historyData } = await supabase
+          .from('sms_conversations')
+          .select('*')
+          .eq('phone_number', phone)
+          .order('created_at', { ascending: false })
+          .limit(5);
+        history = historyData;
+      } catch (dbError) {
+        logger.warn('Database query failed, continuing without user data:', dbError.message);
+      }
+    }
 
     const aiProvider = user?.preferred_ai || 'openai';
     const userName = user?.name || 'there';
     const userId = user?.id;
-
-    // Get conversation history (last 5 messages)
-    const { data: history } = await supabase
-      .from('sms_conversations')
-      .select('*')
-      .eq('phone_number', phone)
-      .order('created_at', { ascending: false })
-      .limit(5);
 
     // Build context from history (reverse to oldest first)
     const conversationContext = history
@@ -112,7 +123,7 @@ async function getOpenAIResponse(userName, question, context = []) {
     const messages = [
       {
         role: 'system',
-        content: `You are Ghost AI, a helpful and friendly AI assistant. The user's name is ${userName}. You're communicating via SMS, so keep responses concise (under 300 characters when possible). Be warm, helpful, and conversational. Remember context from the conversation history.`
+        content: `You are Ghost OS, a natural conversational AI assistant. Answer questions directly with real, complete information. Be conversational and natural. Give actual useful answers, not generic responses. Keep responses clear and conversational for SMS (aim for 2-4 sentences when possible, but give complete answers).`
       },
       ...context,
       {
@@ -122,9 +133,9 @@ async function getOpenAIResponse(userName, question, context = []) {
     ];
 
     const completion = await openai.chat.completions.create({
-      model: 'gpt-4o',
+      model: 'gpt-3.5-turbo',
       messages: messages,
-      max_tokens: 200,
+      max_tokens: 500,
       temperature: 0.8
     });
 
@@ -153,6 +164,11 @@ async function getOpenAIResponse(userName, question, context = []) {
  * @param {string} messageSid - Twilio message SID
  */
 async function saveSMSConversation(phoneNumber, userId, userMessage, aiResponse, aiProvider, messageSid) {
+  if (!supabase) {
+    logger.warn('Supabase not configured, skipping conversation save');
+    return;
+  }
+
   try {
     // Save user message
     await supabase.from('sms_conversations').insert({
@@ -212,6 +228,10 @@ async function sendSMS(toNumber, message) {
  * @param {number} responseLength - Length of AI's response
  */
 async function trackSMSUsage(phoneNumber, aiProvider, questionLength, responseLength) {
+  if (!supabase) {
+    return;
+  }
+
   try {
     const tokensUsed = Math.ceil((questionLength + responseLength) / 4); // Rough estimate
 

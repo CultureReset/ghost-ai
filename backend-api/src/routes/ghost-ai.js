@@ -1,6 +1,6 @@
 import express from 'express';
 import twilio from 'twilio';
-import { initializeVoiceSession, handleTwilioMediaStream, endVoiceSession } from '../services/realtime-voice.service.js';
+import { initializeVoiceSession, handleTwilioMediaStream, endVoiceSession, getSessionInfo } from '../services/realtime-voice.service.js';
 import logger from '../config/logger.js';
 
 const router = express.Router();
@@ -12,20 +12,30 @@ const VoiceResponse = twilio.twiml.VoiceResponse;
  * This is the main Twilio webhook for Ghost AI calls
  */
 router.all('/voice', async (req, res) => {
+  const params = req.method === 'GET' ? req.query : req.body;
+  const callSid = params.CallSid;
+  const from = params.From;
+
+  // Initialize session for conversation tracking
+  if (callSid && from) {
+    await initializeVoiceSession(callSid, from, 'openai');
+    logger.info(`Initialized session for call: ${callSid} from ${from}`);
+  }
+
   // Simple version - just answer the call
   const twiml = new VoiceResponse();
 
   twiml.say({
     voice: 'Polly.Joanna',
     language: 'en-US'
-  }, 'Hi! I am Ghost A I. How can I help you today?');
+  }, 'Hi! I am Ghost OS. How can I help you today?');
 
   // Gather speech input
   const gather = twiml.gather({
     input: 'speech',
     action: '/api/ghost-ai/voice-response',
     method: 'POST',
-    speechTimeout: 'auto',
+    speechTimeout: '20',
     language: 'en-US'
   });
 
@@ -96,26 +106,59 @@ router.all('/voice-response', async (req, res) => {
 
     logger.info(`🎤 Speech from ${from}: ${speechResult}`);
 
-    // Use GPT-4 to generate response
+    // Get session to retrieve conversation history
+    const session = getSessionInfo(callSid);
+
+    // Build conversation messages array
+    const messages = [
+      {
+        role: 'system',
+        content: 'You are Ghost OS, a natural conversational AI assistant. Answer questions directly with real, complete information. Be conversational and natural like talking to someone on the phone. Give actual useful answers, not generic responses. Keep responses clear and to the point, but don\'t artificially limit yourself - if a question needs a full answer, give it.'
+      }
+    ];
+
+    // Add conversation history if session exists
+    if (session && session.conversationHistory) {
+      // Add previous conversation turns
+      session.conversationHistory.forEach(item => {
+        messages.push({
+          role: item.role === 'user' ? 'user' : 'assistant',
+          content: item.content
+        });
+      });
+    }
+
+    // Add current user message
+    messages.push({
+      role: 'user',
+      content: speechResult
+    });
+
+    // Use GPT-3.5-turbo to generate response
     const OpenAI = (await import('openai')).default;
     const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
     const completion = await openai.chat.completions.create({
       model: 'gpt-3.5-turbo',
-      messages: [
-        {
-          role: 'system',
-          content: 'You are Ghost AI, a helpful voice assistant. Keep responses brief and conversational (2-3 sentences max).'
-        },
-        {
-          role: 'user',
-          content: speechResult
-        }
-      ],
-      max_tokens: 150
+      messages: messages,
+      max_tokens: 500
     });
 
     const aiResponse = completion.choices[0].message.content;
+
+    // Store conversation in session history
+    if (session && session.conversationHistory) {
+      session.conversationHistory.push({
+        role: 'user',
+        content: speechResult,
+        timestamp: new Date()
+      });
+      session.conversationHistory.push({
+        role: 'assistant',
+        content: aiResponse,
+        timestamp: new Date()
+      });
+    }
 
     // Send response back as voice
     const twiml = new VoiceResponse();
@@ -129,7 +172,7 @@ router.all('/voice-response', async (req, res) => {
       input: 'speech',
       action: '/api/ghost-ai/voice-response',
       method: 'POST',
-      speechTimeout: 'auto',
+      speechTimeout: '20',
       language: 'en-US'
     });
 
@@ -138,11 +181,8 @@ router.all('/voice-response', async (req, res) => {
       language: 'en-US'
     }, 'Is there anything else I can help you with?');
 
-    // If no response, say goodbye
-    twiml.say({
-      voice: 'Polly.Joanna',
-      language: 'en-US'
-    }, 'Goodbye!');
+    // If no response after timeout, check if user is still there instead of hanging up
+    twiml.redirect('/api/ghost-ai/voice-check');
 
     res.type('text/xml');
     res.send(twiml.toString());
@@ -160,6 +200,34 @@ router.all('/voice-response', async (req, res) => {
     res.type('text/xml');
     res.send(twiml.toString());
   }
+});
+
+/**
+ * GET/POST /api/ghost-ai/voice-check
+ * Handle silence timeout - check if user is still there
+ */
+router.all('/voice-check', async (req, res) => {
+  const twiml = new VoiceResponse();
+
+  twiml.say({
+    voice: 'Polly.Joanna',
+    language: 'en-US'
+  }, 'Are you still there?');
+
+  // Gather speech input with longer timeout
+  const gather = twiml.gather({
+    input: 'speech',
+    action: '/api/ghost-ai/voice-response',
+    method: 'POST',
+    speechTimeout: '30',
+    language: 'en-US'
+  });
+
+  // If still no response after this, redirect back to check again (never auto-hangup)
+  twiml.redirect('/api/ghost-ai/voice-check');
+
+  res.type('text/xml');
+  res.send(twiml.toString());
 });
 
 /**
