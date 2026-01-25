@@ -138,84 +138,40 @@ async function getGrokResponse(userName, question, context = []) {
       timeZoneName: 'short'
     });
 
-    // Step 1: Grok understands and checks if question is clear
-    const grokCheck = [
+    // Direct routing - ONE API call only (fastest)
+    const needsWebSearch = /\b(weather|news|today|now|current|latest|happening|stock|price|score|game|election|update|tomorrow)\b/i.test(question);
+
+    const systemPrompt = `You are Ghost OS. ${needsWebSearch ? 'Use real-time web search for CURRENT data.' : 'Give helpful answers.'} If question unclear, ask for clarification. SHORT responses (1-3 sentences).
+
+CURRENT TIME: ${dateStr}, ${timeStr}`;
+
+    const messages = [
       {
         role: 'system',
-        content: `Check if this question is CLEAR or needs follow-up. Respond ONLY with:
-- "CLEAR" if question has enough info
-- "ASK: [specific question]" if needs clarification
-
-Examples:
-- "How's the weather?" → "ASK: Where are you located?"
-- "What's the weather in NYC?" → "CLEAR"`
+        content: systemPrompt
       },
+      ...context,
       {
         role: 'user',
         content: question
       }
     ];
 
-    const grokCheckResponse = await grok.chat.completions.create({
-      model: 'grok-3',
-      messages: grokCheck,
-      max_tokens: 30,
-      temperature: 0.3
-    });
-
-    const checkResult = grokCheckResponse.choices[0].message.content.trim();
-
-    // If needs clarification, return Grok's follow-up question
-    if (checkResult.startsWith('ASK:')) {
-      return checkResult.substring(4).trim();
-    }
-
-    // Step 2: Question is clear - check if needs real-time data
-    const needsWebSearch = /\b(weather|news|today|now|current|latest|happening|stock|price|score|game|election|update|tomorrow)\b/i.test(question);
-
     if (needsWebSearch) {
-      // Perplexity handles real-time data lookup
-      const perplexityMessages = [
-        {
-          role: 'system',
-          content: `You are Ghost OS with real-time web search. Give CURRENT data. SHORT responses (1-3 sentences).
-
-CURRENT TIME: ${dateStr}, ${timeStr}`
-        },
-        ...context,
-        {
-          role: 'user',
-          content: question
-        }
-      ];
-
+      // Perplexity for real-time data
       const completion = await perplexity.chat.completions.create({
         model: 'llama-3.1-sonar-small-128k-online',
-        messages: perplexityMessages,
+        messages: messages,
         max_tokens: 100,
         temperature: 0.7
       });
 
       return completion.choices[0].message.content.trim();
     } else {
-      // Grok handles non-real-time questions (faster/cheaper)
-      const grokMessages = [
-        {
-          role: 'system',
-          content: `You are Ghost OS. Give helpful answers. SHORT responses (1-3 sentences).
-
-CURRENT TIME: ${dateStr}, ${timeStr}`
-        },
-        ...context,
-        {
-          role: 'user',
-          content: question
-        }
-      ];
-
+      // Grok for general questions (faster/cheaper)
       const completion = await grok.chat.completions.create({
         model: 'grok-3',
-        messages: grokMessages,
+        messages: messages,
         max_tokens: 100,
         temperature: 0.7
       });
@@ -224,7 +180,7 @@ CURRENT TIME: ${dateStr}, ${timeStr}`
     }
 
   } catch (error) {
-    logger.error('Hybrid AI failed:', error);
+    logger.error('AI failed:', error);
     throw error;
   }
 }

@@ -166,7 +166,7 @@ CURRENT TIME CONTEXT:
       content: speechResult
     });
 
-    // Hybrid AI: Grok starts (understanding), Perplexity joins (data)
+    // Direct routing - ONE API call only (fastest)
     const OpenAI = (await import('openai')).default;
 
     const grok = new OpenAI({
@@ -179,52 +179,27 @@ CURRENT TIME CONTEXT:
       baseURL: 'https://api.perplexity.ai'
     });
 
-    // Step 1: Grok checks if question is clear
-    const grokCheck = await grok.chat.completions.create({
-      model: 'grok-3',
-      messages: [
-        {
-          role: 'system',
-          content: 'Check if clear or needs follow-up. Respond ONLY: "CLEAR" or "ASK: [question]"'
-        },
-        {
-          role: 'user',
-          content: speechResult
-        }
-      ],
-      max_tokens: 30,
-      temperature: 0.3
-    });
+    const needsWebSearch = /\b(weather|news|today|now|current|latest|happening|stock|price|score|game|election|update|tomorrow)\b/i.test(speechResult);
 
-    const checkResult = grokCheck.choices[0].message.content.trim();
     let aiResponse;
-
-    if (checkResult.startsWith('ASK:')) {
-      // Return follow-up question
-      aiResponse = checkResult.substring(4).trim();
+    if (needsWebSearch) {
+      // Perplexity for real-time data
+      const completion = await perplexity.chat.completions.create({
+        model: 'llama-3.1-sonar-small-128k-online',
+        messages: messages,
+        max_tokens: 100,
+        temperature: 0.7
+      });
+      aiResponse = completion.choices[0].message.content;
     } else {
-      // Question is clear - check if needs real-time data
-      const needsWebSearch = /\b(weather|news|today|now|current|latest|happening|stock|price|score|game|election|update|tomorrow)\b/i.test(speechResult);
-
-      if (needsWebSearch) {
-        // Perplexity for real-time data
-        const completion = await perplexity.chat.completions.create({
-          model: 'llama-3.1-sonar-small-128k-online',
-          messages: messages,
-          max_tokens: 100,
-          temperature: 0.7
-        });
-        aiResponse = completion.choices[0].message.content;
-      } else {
-        // Grok for general questions (faster/cheaper)
-        const completion = await grok.chat.completions.create({
-          model: 'grok-3',
-          messages: messages,
-          max_tokens: 100,
-          temperature: 0.7
-        });
-        aiResponse = completion.choices[0].message.content;
-      }
+      // Grok for general questions (faster/cheaper)
+      const completion = await grok.chat.completions.create({
+        model: 'grok-3',
+        messages: messages,
+        max_tokens: 100,
+        temperature: 0.7
+      });
+      aiResponse = completion.choices[0].message.content;
     }
 
     // Store conversation in session history
