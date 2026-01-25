@@ -25,11 +25,6 @@ router.all('/voice', async (req, res) => {
   // Simple version - just answer the call
   const twiml = new VoiceResponse();
 
-  twiml.say({
-    voice: 'Polly.Joanna',
-    language: 'en-US'
-  }, 'Hi! I am Ghost OS. How can I help you today?');
-
   // Gather speech input
   const gather = twiml.gather({
     input: 'speech',
@@ -38,6 +33,11 @@ router.all('/voice', async (req, res) => {
     speechTimeout: '20',
     language: 'en-US'
   });
+
+  gather.say({
+    voice: 'Polly.Joanna',
+    language: 'en-US'
+  }, 'Hi! I am Ghost OS. How can I help you today?');
 
   res.type('text/xml');
   res.send(twiml.toString());
