@@ -18,6 +18,11 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY
 });
 
+const perplexity = new OpenAI({
+  apiKey: process.env.PERPLEXITY_API_KEY,
+  baseURL: 'https://api.perplexity.ai'
+});
+
 const GHOST_AI_NUMBER = process.env.GHOST_OS_WAITLIST_NUMBER;
 
 /**
@@ -123,7 +128,7 @@ async function getOpenAIResponse(userName, question, context = []) {
     const messages = [
       {
         role: 'system',
-        content: `You are Ghost OS, a natural conversational AI assistant. Answer questions directly with real, complete information. Be conversational and natural. Give actual useful answers, not generic responses. Keep responses clear and conversational for SMS (aim for 2-4 sentences when possible, but give complete answers).`
+        content: `You are Ghost OS, a natural conversational AI assistant. Answer questions directly with real, complete, current information. Search the web when needed. Be conversational and natural. Give actual useful answers with specific facts, not generic responses. Keep responses clear and conversational for SMS (aim for 2-4 sentences when possible, but give complete answers).`
       },
       ...context,
       {
@@ -132,11 +137,12 @@ async function getOpenAIResponse(userName, question, context = []) {
       }
     ];
 
-    const completion = await openai.chat.completions.create({
-      model: 'gpt-3.5-turbo',
+    // Use Perplexity for web-connected AI responses
+    const completion = await perplexity.chat.completions.create({
+      model: 'llama-3.1-sonar-small-128k-online',
       messages: messages,
       max_tokens: 500,
-      temperature: 0.8
+      temperature: 0.7
     });
 
     const response = completion.choices[0].message.content.trim();
