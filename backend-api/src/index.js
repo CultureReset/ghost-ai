@@ -20,6 +20,7 @@ app.use(cors({
     process.env.GHOST_OS_URL || 'http://localhost:8080',
     process.env.CYBERCHECK_URL || 'http://localhost:8081',
     process.env.GCR_URL || 'http://localhost:8082',
+    'http://localhost:8090',
     'https://ghostos.ai',
     'https://cybercheck.com',
     'https://gulfcoastradar.com'

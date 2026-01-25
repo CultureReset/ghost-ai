@@ -50,30 +50,28 @@ router.post('/signup', async (req, res) => {
       });
     }
 
-    // Generate subdomain from business name
-    const subdomain = business_name
-      .toLowerCase()
-      .replace(/[^a-z0-9]+/g, '-')
-      .replace(/^-|-$/g, '')
-      .substring(0, 50);
-
-    // Check if subdomain already exists
-    const { data: existingSubdomain } = await supabase
-      .from('users')
-      .select('id')
-      .eq('subdomain', subdomain)
-      .single();
-
-    if (existingSubdomain) {
-      // Add random suffix if subdomain exists
-      const randomSuffix = Math.floor(Math.random() * 9999);
-      subdomain = `${subdomain}-${randomSuffix}`;
-    }
-
     // Hash password
     const password_hash = await bcrypt.hash(password, 10);
 
-    // Create user
+    // Create business first
+    const { data: business, error: businessError } = await supabase
+      .from('businesses')
+      .insert({
+        name: business_name,
+        business_type: 'general'
+      })
+      .select('id')
+      .single();
+
+    if (businessError) {
+      logger.error('Business creation failed:', businessError);
+      return res.status(500).json({
+        success: false,
+        error: 'Failed to create business account'
+      });
+    }
+
+    // Create user with business_id
     const { data: user, error: userError } = await supabase
       .from('users')
       .insert({
@@ -81,10 +79,9 @@ router.post('/signup', async (req, res) => {
         password_hash,
         first_name,
         last_name,
-        business_name,
-        subdomain
+        business_id: business.id
       })
-      .select('id, email, first_name, last_name, business_name, subdomain, created_at')
+      .select('id, email, first_name, last_name, created_at')
       .single();
 
     if (userError) {
@@ -128,9 +125,7 @@ router.post('/signup', async (req, res) => {
         id: user.id,
         email: user.email,
         first_name: user.first_name,
-        last_name: user.last_name,
-        business_name: user.business_name,
-        subdomain: user.subdomain
+        last_name: user.last_name
       },
       token
     });
@@ -162,7 +157,7 @@ router.post('/login', async (req, res) => {
     // Get user
     const { data: user, error: userError } = await supabase
       .from('users')
-      .select('id, email, password_hash, first_name, last_name, business_name, subdomain, created_at')
+      .select('id, email, password_hash, first_name, last_name, created_at')
       .eq('email', email.toLowerCase())
       .single();
 
@@ -208,9 +203,7 @@ router.post('/login', async (req, res) => {
         id: user.id,
         email: user.email,
         first_name: user.first_name,
-        last_name: user.last_name,
-        business_name: user.business_name,
-        subdomain: user.subdomain
+        last_name: user.last_name
       },
       token
     });
