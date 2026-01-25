@@ -14,3 +14,5 @@
 2026-01-12 12:33:59 [warn]: Twilio not configured - SMS features disabled
 2026-01-12 13:08:34 [warn]: Twilio not configured - SMS features disabled
 2026-01-22 19:36:10 [warn]: Twilio not configured - SMS features disabled
+2026-01-24 21:23:55 [info]: Shared Twilio client initialized
+2026-01-24 21:23:57 [info]: 🎙️  Media Stream WebSocket server initialized
