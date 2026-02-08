@@ -156,10 +156,10 @@ router.all('/voice-response', async (req, res) => {
  */
 router.all('/voice-process', async (req, res) => {
   try {
-    const params = req.method === 'GET' ? req.query : req.body;
-    const speechResult = params.SpeechResult;
-    const from = params.From;
-    const callSid = params.CallSid;
+    // Parameters come from query string (redirect with query params)
+    const speechResult = req.query.SpeechResult;
+    const from = req.query.From;
+    const callSid = req.query.CallSid;
 
     logger.info(`🤖 Processing AI response for: ${speechResult}`);
 
