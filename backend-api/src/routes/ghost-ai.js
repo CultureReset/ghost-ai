@@ -1,7 +1,7 @@
 import express from 'express';
 import twilio from 'twilio';
 import OpenAI from 'openai';
-import { createFastSession, handleTwilioMediaStream, endVoiceSession, getSessionInfo } from '../services/realtime-voice.service.js';
+import { createFastSession, initializeVoiceSession, handleTwilioMediaStream, endVoiceSession, getSessionInfo } from '../services/realtime-voice.service.js';
 import logger from '../config/logger.js';
 
 const router = express.Router();
@@ -24,25 +24,19 @@ router.all('/voice', async (req, res) => {
 
   logger.info(`📞 Incoming call: ${callSid} from ${from}`);
 
-  // DON'T await - respond immediately to Twilio
+  // Initialize session for this call (don't await)
+  initializeVoiceSession(callSid, from, 'openai').catch(err =>
+    logger.warn('Background session init failed:', err.message)
+  );
+
+  // Respond immediately with Media Stream connection
   const twiml = new VoiceResponse();
 
-  twiml.say({
-    voice: 'Polly.Joanna',
-    language: 'en-US'
-  }, 'Welcome to Ghost AI. How can I help you today?');
-
-  // Gather speech input
-  const gather = twiml.gather({
-    input: 'speech',
-    action: '/api/ghost-ai/voice-response',
-    method: 'POST',
-    speechTimeout: '3',
-    language: 'en-US'
+  // Connect bidirectional audio stream to our WebSocket server
+  const connect = twiml.connect();
+  connect.stream({
+    url: `wss://${req.get('host')}/api/ghost-ai/media-stream`
   });
-
-  // If no speech detected, check if user is still there
-  twiml.redirect('/api/ghost-ai/voice-check');
 
   res.type('text/xml');
   res.send(twiml.toString());
