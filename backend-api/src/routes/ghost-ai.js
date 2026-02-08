@@ -107,30 +107,117 @@ router.all('/voice-response', async (req, res) => {
 
     logger.info(`🎤 Speech from ${from}: ${speechResult}`);
 
-    // Immediate acknowledgment - say "Let me find that" and redirect to processing
-    if (!params.processing) {
+    // Validate we have speech input
+    if (!speechResult || !callSid) {
+      logger.error(`❌ Missing parameters - SpeechResult: ${speechResult}, CallSid: ${callSid}`);
       const twiml = new VoiceResponse();
       twiml.say({
         voice: 'Polly.Joanna',
         language: 'en-US'
-      }, 'Let me find that for you.');
-
-      // Redirect to processing with the speech result preserved
-      twiml.redirect({
-        method: 'POST'
-      }, `/api/ghost-ai/voice-process?CallSid=${callSid}&From=${from}&SpeechResult=${encodeURIComponent(speechResult)}&processing=true`);
-
+      }, 'Sorry, I didn\'t catch that. Please try again.');
+      twiml.redirect('/api/ghost-ai/voice');
       res.type('text/xml');
       return res.send(twiml.toString());
     }
 
-    // If we get here without processing flag, something went wrong
+    // Get or create session
+    let session = getSessionInfo(callSid);
+    if (!session) {
+      session = createFastSession(callSid, from);
+    }
+
+    // Get current date and time for context
+    const now = new Date();
+    const dateStr = now.toLocaleDateString('en-US', {
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
+    const timeStr = now.toLocaleTimeString('en-US', {
+      hour: '2-digit',
+      minute: '2-digit',
+      timeZoneName: 'short'
+    });
+
+    // Build conversation messages
+    const messages = [
+      {
+        role: 'system',
+        content: `You are Ghost OS, a helpful AI assistant on a phone call.
+
+Keep responses SHORT and CONVERSATIONAL - you're speaking, not writing.
+
+CURRENT TIME CONTEXT:
+- Today's date is: ${dateStr}
+- Current time is: ${timeStr}
+- Use this for "today", "now", "current" questions`
+      }
+    ];
+
+    // Add conversation history
+    if (session && session.conversationHistory) {
+      session.conversationHistory.forEach(item => {
+        messages.push({
+          role: item.role === 'user' ? 'user' : 'assistant',
+          content: item.content
+        });
+      });
+    }
+
+    // Add current user message
+    messages.push({
+      role: 'user',
+      content: speechResult
+    });
+
+    // Call OpenAI
+    logger.info(`🤖 Calling OpenAI with ${messages.length} messages`);
+    const completion = await openai.chat.completions.create({
+      model: 'gpt-4o-mini',
+      messages: messages,
+      max_tokens: 100,
+      temperature: 0.7
+    });
+
+    const aiResponse = completion.choices[0].message.content;
+    logger.info(`✅ OpenAI response: ${aiResponse.substring(0, 50)}...`);
+
+    // Store conversation
+    if (session && session.conversationHistory) {
+      session.conversationHistory.push({
+        role: 'user',
+        content: speechResult,
+        timestamp: new Date()
+      });
+      session.conversationHistory.push({
+        role: 'assistant',
+        content: aiResponse,
+        timestamp: new Date()
+      });
+    }
+
+    // Send response
     const twiml = new VoiceResponse();
     twiml.say({
       voice: 'Polly.Joanna',
       language: 'en-US'
-    }, 'Sorry, I had trouble understanding that. Please try again.');
-    twiml.redirect('/api/ghost-ai/voice');
+    }, aiResponse);
+
+    const gather = twiml.gather({
+      input: 'speech',
+      action: '/api/ghost-ai/voice-response',
+      method: 'POST',
+      speechTimeout: '3',
+      language: 'en-US'
+    });
+
+    gather.say({
+      voice: 'Polly.Joanna',
+      language: 'en-US'
+    }, 'Is there anything else I can help you with?');
+
+    twiml.redirect('/api/ghost-ai/voice-check');
 
     res.type('text/xml');
     res.send(twiml.toString());
