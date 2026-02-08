@@ -181,50 +181,40 @@ export async function initializeVoiceSession(callSid, phoneNumber, aiProvider = 
  */
 export async function handleTwilioMediaStream(twilioWs, callSid) {
   try {
-    const session = activeSessions.get(callSid);
+    let session = activeSessions.get(callSid);
 
+    // If session doesn't exist yet (race condition), create a fast one
     if (!session) {
-      logger.error(`No session found for call: ${callSid}`);
-      twilioWs.close();
-      return;
+      logger.warn(`⚠️  No session found for call: ${callSid}, creating fast session`);
+      // Extract phone number from callSid if available, or use placeholder
+      session = createFastSession(callSid, 'unknown');
     }
 
     session.twilioWebSocket = twilioWs;
-    logger.info(`Twilio Media Stream connected for call: ${callSid}`);
+    logger.info(`📞 Twilio Media Stream connected for call: ${callSid}`);
 
     // Connect to AI provider based on preference
-    if (session.aiProvider === 'openai') {
-      await connectOpenAIRealtime(session);
-    } else {
-      // For other providers, fall back to OpenAI for now
-      // TODO: Add Grok, Gemini, Perplexity realtime support
-      logger.warn(`Provider ${session.aiProvider} not yet supported for realtime. Falling back to OpenAI.`);
-      await connectOpenAIRealtime(session);
+    try {
+      if (session.aiProvider === 'openai') {
+        await connectOpenAIRealtime(session);
+        logger.info(`✅ Successfully initialized OpenAI for call: ${callSid}`);
+      } else {
+        // For other providers, fall back to OpenAI for now
+        // TODO: Add Grok, Gemini, Perplexity realtime support
+        logger.warn(`Provider ${session.aiProvider} not yet supported for realtime. Falling back to OpenAI.`);
+        await connectOpenAIRealtime(session);
+      }
+    } catch (aiError) {
+      logger.error(`❌ CRITICAL: Failed to connect to OpenAI for call ${callSid}:`, aiError.message);
+      logger.error('Stack:', aiError.stack);
+      // Don't throw - keep Twilio connection alive even if OpenAI fails
+      // The call will stay connected but without AI responses
     }
 
-    // Handle incoming audio from Twilio
-    twilioWs.on('message', (message) => {
-      try {
-        const data = JSON.parse(message);
-        handleTwilioMessage(session, data);
-      } catch (error) {
-        logger.error('Error parsing Twilio message:', error);
-      }
-    });
-
-    twilioWs.on('close', () => {
-      logger.info(`Twilio Media Stream closed for call: ${callSid}`);
-      endVoiceSession(callSid);
-    });
-
-    twilioWs.on('error', (error) => {
-      logger.error('Twilio WebSocket error:', error);
-      endVoiceSession(callSid);
-    });
-
   } catch (error) {
-    logger.error('Error handling Twilio Media Stream:', error);
-    twilioWs.close();
+    logger.error('❌ Error handling Twilio Media Stream:', error);
+    logger.error('Stack:', error.stack);
+    // Don't throw - keep connection alive
   }
 }
 
@@ -233,28 +223,39 @@ export async function handleTwilioMediaStream(twilioWs, callSid) {
  * @param {object} session - Session data
  */
 async function connectOpenAIRealtime(session) {
-  try {
-    // Validate API key exists
-    if (!OPENAI_REALTIME_API_KEY) {
-      logger.error('❌ Cannot connect to OpenAI: OPENAI_API_KEY environment variable is not set');
-      throw new Error('OpenAI API key not configured');
-    }
-
-    logger.info(`Connecting to OpenAI Realtime API for call: ${session.callSid}`);
-    logger.info(`Using API key: ${OPENAI_REALTIME_API_KEY.substring(0, 15)}...`);
-
-    // Create WebSocket connection to OpenAI
-    const aiWs = new WebSocket(OPENAI_REALTIME_URL, {
-      headers: {
-        'Authorization': `Bearer ${OPENAI_REALTIME_API_KEY}`,
-        'OpenAI-Beta': 'realtime=v1'
+  return new Promise((resolve, reject) => {
+    try {
+      // Validate API key exists
+      if (!OPENAI_REALTIME_API_KEY) {
+        logger.error('❌ Cannot connect to OpenAI: OPENAI_API_KEY environment variable is not set');
+        reject(new Error('OpenAI API key not configured'));
+        return;
       }
-    });
 
-    session.aiWebSocket = aiWs;
+      logger.info(`🔌 Connecting to OpenAI Realtime API for call: ${session.callSid}`);
+      logger.info(`🔑 Using API key: ${OPENAI_REALTIME_API_KEY.substring(0, 15)}...`);
+      logger.info(`🌐 URL: ${OPENAI_REALTIME_URL}`);
+
+      // Create WebSocket connection to OpenAI
+      const aiWs = new WebSocket(OPENAI_REALTIME_URL, {
+        headers: {
+          'Authorization': `Bearer ${OPENAI_REALTIME_API_KEY}`,
+          'OpenAI-Beta': 'realtime=v1'
+        }
+      });
+
+      session.aiWebSocket = aiWs;
+
+      // Set connection timeout
+      const connectionTimeout = setTimeout(() => {
+        logger.error('❌ OpenAI connection timeout after 10 seconds');
+        aiWs.close();
+        reject(new Error('OpenAI connection timeout'));
+      }, 10000);
 
     aiWs.on('open', () => {
-      logger.info(`OpenAI Realtime API connected for call: ${session.callSid}`);
+      clearTimeout(connectionTimeout);
+      logger.info(`✅ OpenAI Realtime API CONNECTED for call: ${session.callSid}`);
 
       // Configure session
       aiWs.send(JSON.stringify({
@@ -286,6 +287,8 @@ async function connectOpenAIRealtime(session) {
           instructions: `Greet ${session.userName} warmly and ask how you can help them today.`
         }
       }));
+
+      resolve();
     });
 
     aiWs.on('message', (message) => {
@@ -297,52 +300,25 @@ async function connectOpenAIRealtime(session) {
       }
     });
 
-    aiWs.on('close', () => {
-      logger.info(`OpenAI connection closed for call: ${session.callSid}`);
+    aiWs.on('close', (code, reason) => {
+      clearTimeout(connectionTimeout);
+      logger.warn(`⚠️  OpenAI connection closed for call: ${session.callSid} - Code: ${code}, Reason: ${reason}`);
     });
 
     aiWs.on('error', (error) => {
-      logger.error('OpenAI WebSocket error:', error);
+      clearTimeout(connectionTimeout);
+      logger.error('❌ OpenAI WebSocket error:', error);
+      reject(error);
     });
 
-  } catch (error) {
-    logger.error('Error connecting to OpenAI Realtime API:', error);
-    throw error;
-  }
+    } catch (error) {
+      clearTimeout(connectionTimeout);
+      logger.error('❌ Error creating OpenAI WebSocket:', error);
+      reject(error);
+    }
+  });
 }
 
-/**
- * Handle messages from Twilio Media Stream
- * @param {object} session - Session data
- * @param {object} data - Message data from Twilio
- */
-function handleTwilioMessage(session, data) {
-  switch (data.event) {
-    case 'start':
-      logger.info(`Media stream started: ${data.streamSid}`);
-      session.streamSid = data.streamSid;
-      break;
-
-    case 'media':
-      // Forward audio to OpenAI
-      if (session.aiWebSocket && session.aiWebSocket.readyState === WebSocket.OPEN) {
-        session.aiWebSocket.send(JSON.stringify({
-          type: 'input_audio_buffer.append',
-          audio: data.media.payload
-        }));
-      }
-      break;
-
-    case 'stop':
-      logger.info(`Media stream stopped: ${data.streamSid}`);
-      endVoiceSession(session.callSid);
-      break;
-
-    default:
-      // Ignore other events
-      break;
-  }
-}
 
 /**
  * Handle messages from OpenAI Realtime API

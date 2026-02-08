@@ -51,18 +51,47 @@ export function setupMediaStreamWebSocket(wss) {
     logger.info('📡 Ghost AI Media Stream WebSocket connection established');
 
     let callSid = null;
+    let streamSid = null;
 
     ws.on('message', async (message) => {
       try {
         const data = JSON.parse(message);
 
-        // Extract call SID from start message and initialize
-        if (data.event === 'start') {
-          callSid = data.start.callSid;
-          logger.info(`📞 Media stream started for call: ${callSid}`);
+        switch (data.event) {
+          case 'start':
+            callSid = data.start.callSid;
+            streamSid = data.start.streamSid;
+            logger.info(`📞 Media stream started for call: ${callSid}`);
 
-          // Handle the entire media stream through the realtime service
-          await handleTwilioMediaStream(ws, callSid);
+            // Initialize the media stream connection
+            await handleTwilioMediaStream(ws, callSid);
+
+            // Store streamSid in session after initialization
+            const session = getSessionInfo(callSid);
+            if (session) {
+              session.streamSid = streamSid;
+            }
+            break;
+
+          case 'media':
+            // Audio data from Twilio - forward to OpenAI
+            if (callSid) {
+              const session = getSessionInfo(callSid);
+              if (session && session.aiWebSocket && session.aiWebSocket.readyState === 1) {
+                session.aiWebSocket.send(JSON.stringify({
+                  type: 'input_audio_buffer.append',
+                  audio: data.media.payload
+                }));
+              }
+            }
+            break;
+
+          case 'stop':
+            logger.info(`Media stream stopped: ${streamSid}`);
+            if (callSid) {
+              endVoiceSession(callSid);
+            }
+            break;
         }
 
       } catch (error) {
