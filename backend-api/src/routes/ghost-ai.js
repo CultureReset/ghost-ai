@@ -24,13 +24,7 @@ router.all('/voice', async (req, res) => {
 
   logger.info(`📞 Incoming call: ${callSid} from ${from}`);
 
-  // Initialize session for conversation tracking
-  if (callSid && from) {
-    await initializeVoiceSession(callSid, from, 'openai');
-    logger.info(`Initialized session for call: ${callSid} from ${from}`);
-  }
-
-  // Use traditional Twilio gather/say (WORKING approach)
+  // DON'T await - respond immediately to Twilio
   const twiml = new VoiceResponse();
 
   twiml.say({
