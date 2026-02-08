@@ -30,7 +30,7 @@ router.all('/voice', async (req, res) => {
     logger.info(`Initialized session for call: ${callSid} from ${from}`);
   }
 
-  // Use Twilio Media Streams for real-time audio (low latency)
+  // Use Twilio Media Streams for real-time audio (low latency with Realtime API)
   const twiml = new VoiceResponse();
 
   // Connect directly to WebSocket for real-time conversation
