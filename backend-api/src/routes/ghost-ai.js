@@ -162,6 +162,13 @@ router.all('/voice-process', async (req, res) => {
     const callSid = req.query.CallSid;
 
     logger.info(`🤖 Processing AI response for: ${speechResult}`);
+    logger.info(`📊 Request details - CallSid: ${callSid}, From: ${from}`);
+
+    // Validate required parameters
+    if (!speechResult || !callSid) {
+      logger.error(`❌ Missing required parameters - SpeechResult: ${speechResult}, CallSid: ${callSid}`);
+      throw new Error('Missing required parameters');
+    }
 
     // Get or create session to retrieve conversation history
     let session = getSessionInfo(callSid);
@@ -217,6 +224,7 @@ CURRENT TIME CONTEXT:
     });
 
     // Use OpenAI GPT-4o-mini for fast responses
+    logger.info(`🤖 Calling OpenAI with ${messages.length} messages`);
     const completion = await openai.chat.completions.create({
       model: 'gpt-4o-mini',
       messages: messages,
@@ -225,6 +233,7 @@ CURRENT TIME CONTEXT:
     });
 
     const aiResponse = completion.choices[0].message.content;
+    logger.info(`✅ OpenAI response: ${aiResponse.substring(0, 50)}...`);
 
     // Store conversation in session history
     if (session && session.conversationHistory) {

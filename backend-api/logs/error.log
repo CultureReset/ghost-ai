@@ -1,0 +1,5 @@
+2026-01-24 22:09:01 [error]: User creation failed: Could not find the 'business_name' column of 'users' in the schema cache
+2026-01-24 22:13:58 [error]: User creation failed: Could not find the 'subdomain' column of 'users' in the schema cache
+2026-01-24 22:14:19 [error]: User creation failed: Could not find the 'subdomain' column of 'users' in the schema cache
+2026-01-24 22:19:15 [error]: User creation failed: null value in column "business_id" of relation "users" violates not-null constraint
+2026-01-24 22:23:13 [error]: Business creation failed: Could not find the 'status' column of 'businesses' in the schema cache

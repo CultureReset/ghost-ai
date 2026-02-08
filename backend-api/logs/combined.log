@@ -16,3 +16,24 @@
 2026-01-22 19:36:10 [warn]: Twilio not configured - SMS features disabled
 2026-01-24 21:23:55 [info]: Shared Twilio client initialized
 2026-01-24 21:23:57 [info]: 🎙️  Media Stream WebSocket server initialized
+2026-01-24 21:59:19 [info]: Shared Twilio client initialized
+2026-01-24 21:59:21 [info]: 🎙️  Media Stream WebSocket server initialized
+2026-01-24 22:05:09 [info]: Shared Twilio client initialized
+2026-01-24 22:05:11 [info]: 🎙️  Media Stream WebSocket server initialized
+2026-01-24 22:08:36 [info]: Shared Twilio client initialized
+2026-01-24 22:08:40 [info]: 🎙️  Media Stream WebSocket server initialized
+2026-01-24 22:09:01 [error]: User creation failed: Could not find the 'business_name' column of 'users' in the schema cache
+2026-01-24 22:11:12 [info]: Shared Twilio client initialized
+2026-01-24 22:11:13 [info]: 🎙️  Media Stream WebSocket server initialized
+2026-01-24 22:13:58 [error]: User creation failed: Could not find the 'subdomain' column of 'users' in the schema cache
+2026-01-24 22:14:19 [error]: User creation failed: Could not find the 'subdomain' column of 'users' in the schema cache
+2026-01-24 22:16:16 [info]: Shared Twilio client initialized
+2026-01-24 22:16:18 [info]: 🎙️  Media Stream WebSocket server initialized
+2026-01-24 22:19:15 [error]: User creation failed: null value in column "business_id" of relation "users" violates not-null constraint
+2026-01-24 22:22:42 [info]: Shared Twilio client initialized
+2026-01-24 22:22:44 [info]: 🎙️  Media Stream WebSocket server initialized
+2026-01-24 22:23:13 [error]: Business creation failed: Could not find the 'status' column of 'businesses' in the schema cache
+2026-01-24 22:28:42 [info]: Shared Twilio client initialized
+2026-01-24 22:28:44 [info]: 🎙️  Media Stream WebSocket server initialized
+2026-02-08 14:47:27 [info]: Shared Twilio client initialized
+2026-02-08 14:47:29 [info]: 🎙️  Ghost AI Media Stream WebSocket server initialized
