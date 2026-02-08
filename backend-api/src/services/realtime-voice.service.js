@@ -14,6 +14,18 @@ const OPENAI_REALTIME_URL = 'wss://api.openai.com/v1/realtime?model=gpt-4o-realt
 // Active sessions: Map<callSid, sessionData>
 const activeSessions = new Map();
 
+// Log API key status on startup
+if (!OPENAI_REALTIME_API_KEY) {
+  logger.error('❌ CRITICAL: OPENAI_API_KEY environment variable is NOT SET!');
+  logger.error('Railway must have OPENAI_API_KEY configured in environment variables');
+} else if (OPENAI_REALTIME_API_KEY.startsWith('sk-proj-')) {
+  logger.warn('⚠️  WARNING: Using project key (sk-proj-*) - Realtime API requires service account key (sk-svcacct-*)');
+} else if (OPENAI_REALTIME_API_KEY.startsWith('sk-svcacct-')) {
+  logger.info('✅ OpenAI service account key detected for Realtime API');
+} else {
+  logger.info(`✅ OpenAI API key configured (starts with: ${OPENAI_REALTIME_API_KEY.substring(0, 10)}...)`);
+}
+
 /**
  * Initialize real-time voice session
  * @param {string} callSid - Twilio call SID
@@ -198,7 +210,14 @@ export async function handleTwilioMediaStream(twilioWs, callSid) {
  */
 async function connectOpenAIRealtime(session) {
   try {
+    // Validate API key exists
+    if (!OPENAI_REALTIME_API_KEY) {
+      logger.error('❌ Cannot connect to OpenAI: OPENAI_API_KEY environment variable is not set');
+      throw new Error('OpenAI API key not configured');
+    }
+
     logger.info(`Connecting to OpenAI Realtime API for call: ${session.callSid}`);
+    logger.info(`Using API key: ${OPENAI_REALTIME_API_KEY.substring(0, 15)}...`);
 
     // Create WebSocket connection to OpenAI
     const aiWs = new WebSocket(OPENAI_REALTIME_URL, {
