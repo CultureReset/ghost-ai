@@ -14,6 +14,30 @@ const OPENAI_REALTIME_URL = 'wss://api.openai.com/v1/realtime?model=gpt-4o-realt
 // Active sessions: Map<callSid, sessionData>
 const activeSessions = new Map();
 
+/**
+ * Create a fast in-memory session without database lookups
+ * @param {string} callSid - Twilio call SID
+ * @param {string} phoneNumber - Caller's phone number
+ * @returns {object} - Session data
+ */
+export function createFastSession(callSid, phoneNumber) {
+  const sessionData = {
+    callSid,
+    phoneNumber,
+    aiProvider: 'openai',
+    userName: 'there',
+    startTime: new Date(),
+    conversationHistory: [],
+    aiWebSocket: null,
+    twilioWebSocket: null
+  };
+
+  activeSessions.set(callSid, sessionData);
+  logger.info(`Created fast session for call: ${callSid}`);
+
+  return sessionData;
+}
+
 // Log API key status on startup
 if (!OPENAI_REALTIME_API_KEY) {
   logger.error('❌ CRITICAL: OPENAI_API_KEY environment variable is NOT SET!');
@@ -489,6 +513,7 @@ export function getSessionInfo(callSid) {
 }
 
 export default {
+  createFastSession,
   initializeVoiceSession,
   handleTwilioMediaStream,
   endVoiceSession,

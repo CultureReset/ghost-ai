@@ -1,7 +1,7 @@
 import express from 'express';
 import twilio from 'twilio';
 import OpenAI from 'openai';
-import { initializeVoiceSession, handleTwilioMediaStream, endVoiceSession, getSessionInfo } from '../services/realtime-voice.service.js';
+import { createFastSession, handleTwilioMediaStream, endVoiceSession, getSessionInfo } from '../services/realtime-voice.service.js';
 import logger from '../config/logger.js';
 
 const router = express.Router();
@@ -163,8 +163,13 @@ router.all('/voice-process', async (req, res) => {
 
     logger.info(`🤖 Processing AI response for: ${speechResult}`);
 
-    // Get session to retrieve conversation history
-    const session = getSessionInfo(callSid);
+    // Get or create session to retrieve conversation history
+    let session = getSessionInfo(callSid);
+
+    // If no session exists, create a fast in-memory one (no database lookups)
+    if (!session) {
+      session = createFastSession(callSid, from);
+    }
 
     // Get current date and time for context
     const now = new Date();
