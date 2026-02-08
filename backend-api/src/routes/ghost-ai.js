@@ -1,10 +1,16 @@
 import express from 'express';
 import twilio from 'twilio';
+import OpenAI from 'openai';
 import { initializeVoiceSession, handleTwilioMediaStream, endVoiceSession, getSessionInfo } from '../services/realtime-voice.service.js';
 import logger from '../config/logger.js';
 
 const router = express.Router();
 const VoiceResponse = twilio.twiml.VoiceResponse;
+
+// Initialize OpenAI client once (not on every request)
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY
+});
 
 /**
  * GET/POST /api/ghost-ai/voice
@@ -16,28 +22,26 @@ router.all('/voice', async (req, res) => {
   const callSid = params.CallSid;
   const from = params.From;
 
+  logger.info(`📞 Incoming call: ${callSid} from ${from}`);
+
   // Initialize session for conversation tracking
   if (callSid && from) {
     await initializeVoiceSession(callSid, from, 'openai');
     logger.info(`Initialized session for call: ${callSid} from ${from}`);
   }
 
-  // Simple version - just answer the call
+  // Use Twilio Media Streams for real-time audio (low latency)
   const twiml = new VoiceResponse();
 
-  // Gather speech input
-  const gather = twiml.gather({
-    input: 'speech',
-    action: '/api/ghost-ai/voice-response',
-    method: 'POST',
-    speechTimeout: '20',
-    language: 'en-US'
-  });
+  // Connect directly to WebSocket for real-time conversation
+  const host = req.get('host');
+  const protocol = process.env.NODE_ENV === 'production' ? 'wss' : 'ws';
 
-  gather.say({
-    voice: 'Polly.Joanna',
-    language: 'en-US'
-  }, 'Hi! I am Ghost OS. How can I help you today?');
+  const connect = twiml.connect();
+  connect.stream({
+    url: `${protocol}://${host}/api/ghost-ai/media-stream`,
+    track: 'both_tracks'
+  });
 
   res.type('text/xml');
   res.send(twiml.toString());
@@ -49,25 +53,21 @@ router.all('/voice', async (req, res) => {
  */
 export function setupMediaStreamWebSocket(wss) {
   wss.on('connection', (ws, req) => {
-    logger.info('📡 Media Stream WebSocket connection established');
+    logger.info('📡 Ghost AI Media Stream WebSocket connection established');
 
     let callSid = null;
-    let sessionInitialized = false;
 
     ws.on('message', async (message) => {
       try {
         const data = JSON.parse(message);
 
-        // Extract call SID from start message
+        // Extract call SID from start message and initialize
         if (data.event === 'start') {
           callSid = data.start.callSid;
-          logger.info(`Media stream started for call: ${callSid}`);
+          logger.info(`📞 Media stream started for call: ${callSid}`);
 
-          // Initialize Twilio media stream handler
-          if (!sessionInitialized) {
-            await handleTwilioMediaStream(ws, callSid);
-            sessionInitialized = true;
-          }
+          // Handle the entire media stream through the realtime service
+          await handleTwilioMediaStream(ws, callSid);
         }
 
       } catch (error) {
@@ -90,7 +90,7 @@ export function setupMediaStreamWebSocket(wss) {
     });
   });
 
-  logger.info('🎙️  Media Stream WebSocket server initialized');
+  logger.info('🎙️  Ghost AI Media Stream WebSocket server initialized');
 }
 
 /**
@@ -105,6 +105,62 @@ router.all('/voice-response', async (req, res) => {
     const callSid = params.CallSid;
 
     logger.info(`🎤 Speech from ${from}: ${speechResult}`);
+
+    // Immediate acknowledgment - say "Let me find that" and redirect to processing
+    if (!params.processing) {
+      const twiml = new VoiceResponse();
+      twiml.say({
+        voice: 'Polly.Joanna',
+        language: 'en-US'
+      }, 'Let me find that for you.');
+
+      // Redirect to processing with the speech result preserved
+      twiml.redirect({
+        method: 'POST'
+      }, `/api/ghost-ai/voice-process?CallSid=${callSid}&From=${from}&SpeechResult=${encodeURIComponent(speechResult)}&processing=true`);
+
+      res.type('text/xml');
+      return res.send(twiml.toString());
+    }
+
+    // If we get here without processing flag, something went wrong
+    const twiml = new VoiceResponse();
+    twiml.say({
+      voice: 'Polly.Joanna',
+      language: 'en-US'
+    }, 'Sorry, I had trouble understanding that. Please try again.');
+    twiml.redirect('/api/ghost-ai/voice');
+
+    res.type('text/xml');
+    res.send(twiml.toString());
+
+  } catch (error) {
+    logger.error('Voice response error:', error);
+
+    const twiml = new VoiceResponse();
+    twiml.say({
+      voice: 'Polly.Joanna',
+      language: 'en-US'
+    }, 'Sorry, I had trouble understanding that. Please try again.');
+    twiml.redirect('/api/ghost-ai/voice');
+
+    res.type('text/xml');
+    res.send(twiml.toString());
+  }
+});
+
+/**
+ * GET/POST /api/ghost-ai/voice-process
+ * Process the AI response after acknowledgment
+ */
+router.all('/voice-process', async (req, res) => {
+  try {
+    const params = req.method === 'GET' ? req.query : req.body;
+    const speechResult = params.SpeechResult;
+    const from = params.From;
+    const callSid = params.CallSid;
+
+    logger.info(`🤖 Processing AI response for: ${speechResult}`);
 
     // Get session to retrieve conversation history
     const session = getSessionInfo(callSid);
@@ -127,20 +183,9 @@ router.all('/voice-response', async (req, res) => {
     const messages = [
       {
         role: 'system',
-        content: `You are Ghost OS, a helpful AI assistant with real-time internet access on a phone call.
+        content: `You are Ghost OS, a helpful AI assistant on a phone call.
 
-CRITICAL INSTRUCTIONS:
-1. If a question is vague or needs clarification, IMMEDIATELY ask a specific follow-up question BEFORE attempting to answer. Examples:
-   - "How's the weather?" → "Where are you located?"
-   - "Tell me about Apple" → "Are you asking about Apple Inc. or the fruit?"
-   - "What's happening?" → "What topic or event are you interested in?"
-
-2. Once you have enough context, give REAL ANSWERS using CURRENT, REAL-TIME DATA:
-   - Use your internet access to find current information
-   - Give actual facts, not generic responses
-   - Include recent events, news, data
-
-3. Talk naturally like you're having a phone conversation. Be conversational but keep answers SHORT and FAST - respond quickly with concise answers.
+Keep responses SHORT and CONVERSATIONAL - you're speaking, not writing.
 
 CURRENT TIME CONTEXT:
 - Today's date is: ${dateStr}
@@ -151,7 +196,6 @@ CURRENT TIME CONTEXT:
 
     // Add conversation history if session exists
     if (session && session.conversationHistory) {
-      // Add previous conversation turns
       session.conversationHistory.forEach(item => {
         messages.push({
           role: item.role === 'user' ? 'user' : 'assistant',
@@ -166,41 +210,15 @@ CURRENT TIME CONTEXT:
       content: speechResult
     });
 
-    // Direct routing - ONE API call only (fastest)
-    const OpenAI = (await import('openai')).default;
-
-    const grok = new OpenAI({
-      apiKey: process.env.GROK_API_KEY,
-      baseURL: 'https://api.x.ai/v1'
+    // Use OpenAI GPT-4o-mini for fast responses
+    const completion = await openai.chat.completions.create({
+      model: 'gpt-4o-mini',
+      messages: messages,
+      max_tokens: 100,
+      temperature: 0.7
     });
 
-    const perplexity = new OpenAI({
-      apiKey: process.env.PERPLEXITY_API_KEY,
-      baseURL: 'https://api.perplexity.ai'
-    });
-
-    const needsWebSearch = /\b(weather|news|today|now|current|latest|happening|stock|price|score|game|election|update|tomorrow)\b/i.test(speechResult);
-
-    let aiResponse;
-    if (needsWebSearch) {
-      // Perplexity for real-time data
-      const completion = await perplexity.chat.completions.create({
-        model: 'llama-3.1-sonar-small-128k-online',
-        messages: messages,
-        max_tokens: 50,
-        temperature: 0.7
-      });
-      aiResponse = completion.choices[0].message.content;
-    } else {
-      // Grok for general questions (faster/cheaper)
-      const completion = await grok.chat.completions.create({
-        model: 'grok-3',
-        messages: messages,
-        max_tokens: 50,
-        temperature: 0.7
-      });
-      aiResponse = completion.choices[0].message.content;
-    }
+    const aiResponse = completion.choices[0].message.content;
 
     // Store conversation in session history
     if (session && session.conversationHistory) {
@@ -228,7 +246,7 @@ CURRENT TIME CONTEXT:
       input: 'speech',
       action: '/api/ghost-ai/voice-response',
       method: 'POST',
-      speechTimeout: '20',
+      speechTimeout: '3',
       language: 'en-US'
     });
 
@@ -237,20 +255,20 @@ CURRENT TIME CONTEXT:
       language: 'en-US'
     }, 'Is there anything else I can help you with?');
 
-    // If no response after timeout, check if user is still there instead of hanging up
+    // If no response after timeout, check if user is still there
     twiml.redirect('/api/ghost-ai/voice-check');
 
     res.type('text/xml');
     res.send(twiml.toString());
 
   } catch (error) {
-    logger.error('Voice response error:', error);
+    logger.error('Voice processing error:', error);
 
     const twiml = new VoiceResponse();
     twiml.say({
       voice: 'Polly.Joanna',
       language: 'en-US'
-    }, 'Sorry, I had trouble understanding that. Please try again.');
+    }, 'Sorry, I had trouble with that. Please try again.');
     twiml.redirect('/api/ghost-ai/voice');
 
     res.type('text/xml');
@@ -270,12 +288,12 @@ router.all('/voice-check', async (req, res) => {
     language: 'en-US'
   }, 'Are you still there?');
 
-  // Gather speech input with longer timeout
+  // Gather speech input
   const gather = twiml.gather({
     input: 'speech',
     action: '/api/ghost-ai/voice-response',
     method: 'POST',
-    speechTimeout: '30',
+    speechTimeout: '5',
     language: 'en-US'
   });
 
