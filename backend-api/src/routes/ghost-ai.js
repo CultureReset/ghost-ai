@@ -30,18 +30,25 @@ router.all('/voice', async (req, res) => {
     logger.info(`Initialized session for call: ${callSid} from ${from}`);
   }
 
-  // Use Twilio Media Streams for real-time audio (low latency with Realtime API)
+  // Use traditional Twilio gather/say (WORKING approach)
   const twiml = new VoiceResponse();
 
-  // Connect directly to WebSocket for real-time conversation
-  const host = req.get('host');
-  const protocol = process.env.NODE_ENV === 'production' ? 'wss' : 'ws';
+  twiml.say({
+    voice: 'Polly.Joanna',
+    language: 'en-US'
+  }, 'Welcome to Ghost AI. How can I help you today?');
 
-  const connect = twiml.connect();
-  connect.stream({
-    url: `${protocol}://${host}/api/ghost-ai/media-stream`,
-    track: 'both_tracks'
+  // Gather speech input
+  const gather = twiml.gather({
+    input: 'speech',
+    action: '/api/ghost-ai/voice-response',
+    method: 'POST',
+    speechTimeout: '3',
+    language: 'en-US'
   });
+
+  // If no speech detected, check if user is still there
+  twiml.redirect('/api/ghost-ai/voice-check');
 
   res.type('text/xml');
   res.send(twiml.toString());
