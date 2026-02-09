@@ -63,14 +63,18 @@ export function setupMediaStreamWebSocket(wss) {
             streamSid = data.start.streamSid;
             logger.info(`📞 Media stream started for call: ${callSid}`);
 
-            // Initialize the media stream connection
-            await handleTwilioMediaStream(ws, callSid);
-
-            // Store streamSid in session after initialization
-            const session = getSessionInfo(callSid);
-            if (session) {
-              session.streamSid = streamSid;
+            // Get or create session FIRST
+            let session = getSessionInfo(callSid);
+            if (!session) {
+              session = createFastSession(callSid, 'unknown');
             }
+
+            // Store streamSid BEFORE connecting to OpenAI
+            session.streamSid = streamSid;
+            logger.info(`✅ StreamSid stored: ${streamSid}`);
+
+            // Now initialize the media stream connection
+            await handleTwilioMediaStream(ws, callSid);
             break;
 
           case 'media':
