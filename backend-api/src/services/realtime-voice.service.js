@@ -279,12 +279,12 @@ async function connectOpenAIRealtime(session) {
         }
       }));
 
-      // Send initial greeting
+      // Send initial greeting with clear confirmation
       aiWs.send(JSON.stringify({
         type: 'response.create',
         response: {
           modalities: ['audio'],
-          instructions: `Greet ${session.userName} warmly and ask how you can help them today.`
+          instructions: `Say exactly: "Hello ${session.userName}, Ghost AI is connected and listening. I can hear you clearly. How can I help you today?"`
         }
       }));
 
