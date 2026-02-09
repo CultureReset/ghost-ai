@@ -271,9 +271,9 @@ async function connectOpenAIRealtime(session) {
           },
           turn_detection: {
             type: 'server_vad',
-            threshold: 0.5,
-            prefix_padding_ms: 300,
-            silence_duration_ms: 500
+            threshold: 0.3,  // Lower = more sensitive to voice (easier to detect)
+            prefix_padding_ms: 500,  // Capture more of the start of speech
+            silence_duration_ms: 1200  // Wait longer before assuming user is done talking
           },
           temperature: 0.8
         }
