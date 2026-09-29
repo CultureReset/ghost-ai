@@ -17,13 +17,15 @@ using it" below.
 the fixed header and the AI logo strip above it (four external image URLs) are
 not in it.*
 
+
+
 <!-- branches:start -->
 ## Branches
 
 *Read from GitHub on 2026-09-29. 4 branches.*
 
-- **Default branch on GitHub:** `main`.
-- **`claude/repo-code-analysis-y4n1k7`** is where this README and the audit fixes live. It contains every commit on `main` and more (this README, the audit fixes and the screenshots).
+- **Default branch on GitHub:** `main`. It does **not** yet have this README or the audit fixes; those are on `claude/repo-code-analysis-y4n1k7`, which contains every commit of `main` and more, so it can be fast-forwarded without losing anything.
+- **`claude/repo-code-analysis-y4n1k7`** is where the README audit, the screenshots and the fixes were made.
 - **1 other branch holds commits that `claude/repo-code-analysis-y4n1k7` does not have.** The newest is `claude/linux-build-cleanup-dfpu0e` (last commit 2026-09-15, 1 commit not in the work branch). Check it before assuming the work branch is the whole story.
 
 | Branch | Last commit | Not in the work branch | Last commit message |
