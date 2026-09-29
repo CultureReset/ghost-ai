@@ -24,7 +24,7 @@ not in it.*
 
 *Read from GitHub on 2026-09-29. 4 branches.*
 
-- **Default branch on GitHub:** `main`. It does **not** yet have this README or the audit fixes; those are on `claude/repo-code-analysis-y4n1k7`, which contains every commit of `main` and more, so it can be fast-forwarded without losing anything.
+- **Default branch on GitHub:** `main`. On 2026-09-29 it was fast-forwarded to `claude/repo-code-analysis-y4n1k7`, so it now has this README and the audit fixes; nothing was overwritten (it previously ended at `8fd7864`).
 - **`claude/repo-code-analysis-y4n1k7`** is where the README audit, the screenshots and the fixes were made.
 - **1 other branch holds commits that `claude/repo-code-analysis-y4n1k7` does not have.** The newest is `claude/linux-build-cleanup-dfpu0e` (last commit 2026-09-15, 1 commit not in the work branch). Check it before assuming the work branch is the whole story.
 
