@@ -17,6 +17,24 @@ using it" below.
 the fixed header and the AI logo strip above it (four external image URLs) are
 not in it.*
 
+<!-- branches:start -->
+## Branches
+
+*Read from GitHub on 2026-09-29. 4 branches.*
+
+- **Default branch on GitHub:** `main`.
+- **`claude/repo-code-analysis-y4n1k7`** is where this README and the audit fixes live. It contains every commit on `main` and more (this README, the audit fixes and the screenshots).
+- **1 other branch holds commits that `claude/repo-code-analysis-y4n1k7` does not have.** The newest is `claude/linux-build-cleanup-dfpu0e` (last commit 2026-09-15, 1 commit not in the work branch). Check it before assuming the work branch is the whole story.
+
+| Branch | Last commit | Not in the work branch | Last commit message |
+| --- | --- | --- | --- |
+| `claude/repo-code-analysis-y4n1k7` (work branch) | 2026-09-29 | - | this README and the audit fixes |
+| `claude/linux-build-cleanup-dfpu0e` | 2026-09-15 | 1 | docs: README, a committed .env, and confirmation check-mate-api- forked  |
+| `main` (default) | 2026-02-08 | 0 | Fix silence issue - set streamSid before OpenAI connection |
+| `master` | 2026-01-24 | 0 | Make AI conversational like ChatGPT/Perplexity platforms |
+
+<!-- branches:end -->
+
 ## What is in it
 
 | Path | What it holds |
