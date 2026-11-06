@@ -134,9 +134,9 @@ CURRENT TIME: ${dateStr}, ${timeStr}`;
 
       return completion.choices[0].message.content.trim();
     } else {
-      // Grok for general questions (faster/cheaper)
+      // General questions. Confirm availability and rates before enabling this model.
       const completion = await grok.chat.completions.create({
-        model: 'grok-3',
+        model: 'grok-4.7',
         messages: messages,
         max_tokens: 50,
         temperature: 0.7
@@ -258,8 +258,8 @@ async function trackSMSUsage(phoneNumber, aiProvider, questionLength, responseLe
  * @returns {number} - Cost in dollars
  */
 function calculateSMSAICost(tokensUsed) {
-  // OpenAI GPT-4o: ~$0.005 per 1K input tokens, ~$0.015 per 1K output tokens
-  // Average: ~$0.01 per 1K tokens
+  // Legacy accounting estimate, NOT verified grok-4.7 pricing.
+  // Replace with provider-reported input/output usage and verified rates before billing.
   // Twilio SMS: ~$0.0075 per message
 
   const openaiCost = (tokensUsed / 1000) * 0.01;
