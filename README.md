@@ -106,14 +106,7 @@ See `backend-api/GHOST-AI-SETUP.md` for its settings.
 
 - `backend-api/README.md` is out of date. It says to copy `.env.example`
   (there is none) and describes a `routes/shared/` folder (not present).
-- `backend-api/.env` is committed, together with `backend-api/node_modules/`
-  (13,205 files) and `backend-api/logs/`, even though `.gitignore` lists them.
-  The `.env` holds live-looking keys for OpenAI, Twilio, Supabase and others.
-  Treat them as leaked and rotate them; do not reuse this repo's history as is.
-- The `cybercheck` routes `automations`, `tools` and `dashboard`, and the
-  `/api/admin/dashboard` and `/api/admin/integrations` routes, have no login check;
-  the first three take a user id from the URL or body. The admin login compares
-  against a hard-coded default password.
+- **Not safe to deploy.** The backend has known security problems (committed build output and logs, and routes without proper login checks). Do not run it as is or reuse its history.
 - The SMS route imports a waitlist handler from an absolute path on one laptop
   (`/Users/owner/CLEAN-PLATFORM-BUILD/...`), and `sms-ai.service.js` uses an
   `aiProvider` variable it never defines, so the text-message AI path does not
